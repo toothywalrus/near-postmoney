@@ -26,10 +26,10 @@ Shorter alternative (one post):
 |---|---|---|
 | 0-6 s | The page's hero: "Acme Robotics, Inc.", status "Live from NEAR testnet" | "This is a company's cap table on NEAR. Its board is a Sputnik DAO." |
 | 6-14 s | §1 the ownership bar; hover a SAFE segment | "Founders, a Series A, the option pool, and two SAFEs still outstanding: each shown at its cap, as the post-money SAFE promises." |
-| 14-26 s | §2: drag the pre-money slider down, then up; the bar redraws; the SAFE rows flip between "at its cap" and "at the round's price × 80%" | "Model the next round. Every number is the contract's own preview: the price, the pool top-up, and each SAFE taking whichever of its cap or its discount gives more shares." |
-| 26-34 s | §3 the SVG certificates | "Each SAFE is an NFT minted when the round closed, drawn by the contract. It moves only with the board's consent." |
-| 34-44 s | §5 the YC vs chain table, all ticks | "This is YC's worked example from the Post-Money SAFE guide, run on testnet by the DAO. Every line matches, to the share." |
-| 44-52 s | §6, proposal 3 in red | "The board votes on a hash of the numbers. When the cap table moved after this vote, the contract refused to execute it." |
+| 14-26 s | §3: drag the pre-money slider down, then up; the bar redraws; the SAFE rows flip between "at its cap" and "at the round's price × 80%" | "Model the next round. Every number is the contract's own preview: the price, the pool top-up, and each SAFE taking whichever of its cap or its discount gives more shares." |
+| 26-34 s | §4 the SVG certificates | "Each SAFE is an NFT minted when the round closed, drawn by the contract. It moves only with the board's consent." |
+| 34-44 s | §6 the YC vs chain table, all ticks | "This is YC's worked example from the Post-Money SAFE guide, run on testnet by the DAO. Every line matches, to the share." |
+| 44-52 s | §7, proposal 3 in red | "The board votes on a hash of the numbers. When the cap table moved after this vote, the contract refused to execute it." |
 | 52-60 s | Terminal: `npm run judge`, the table of PASS | "Twenty-five hundred random rounds against an independent implementation, fifty-four attack checks, nineteen broken builds caught. One command." |
 
 ## Before posting
