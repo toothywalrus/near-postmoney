@@ -24,7 +24,8 @@
     "test:contracts": "sh scripts/cargo.sh test",
     "web": "npm run dev -w web",
     "build:web": "npm run build -w web",
-    "shots": "tsx scripts/shots.ts"
+    "shots": "tsx scripts/shots.ts",
+    "snapshot": "tsx scripts/snapshot.ts"
   },
   "workspaces": [
     "web"

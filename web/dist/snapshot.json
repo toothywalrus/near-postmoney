@@ -1,0 +1,670 @@
+{
+ "recorded_at": "2026-11-13T12:51:42.590Z",
+ "block": 277512313,
+ "explorer": "https://testnet.nearblocks.io",
+ "company": "acme.near-postmoney-8624.testnet",
+ "board": "acme-board-8624.sputnik-v2.testnet",
+ "usdc": "usdc.near-postmoney-8624.testnet",
+ "cap_table": {
+  "company": "Acme Robotics, Inc.",
+  "board": "acme-board-8624.sputnik-v2.testnet",
+  "treasury": "acme-board-8624.sputnik-v2.testnet",
+  "usdc": "usdc.near-postmoney-8624.testnet",
+  "version": "9",
+  "classes": [
+   {
+    "name": "Common",
+    "preferred": false,
+    "price": "0"
+   },
+   {
+    "name": "Series A",
+    "preferred": true,
+    "price": "1114400"
+   },
+   {
+    "name": "Series A-1 (Safe Preferred)",
+    "preferred": true,
+    "price": "340000"
+   },
+   {
+    "name": "Series A-2 (Safe Preferred)",
+    "preferred": true,
+    "price": "680000"
+   }
+  ],
+  "positions": [
+   {
+    "holder": "ada.near-postmoney-8624.testnet",
+    "class": 0,
+    "shares": "5900000",
+    "preference": "0",
+    "locked": "0"
+   },
+   {
+    "holder": "ben.near-postmoney-8624.testnet",
+    "class": 0,
+    "shares": "3200000",
+    "preference": "0",
+    "locked": "0"
+   },
+   {
+    "holder": "alice.near-postmoney-8624.testnet",
+    "class": 2,
+    "shares": "588235",
+    "preference": "200000000000",
+    "locked": "0"
+   },
+   {
+    "holder": "bob.near-postmoney-8624.testnet",
+    "class": 3,
+    "shares": "1176470",
+    "preference": "800000000000",
+    "locked": "0"
+   },
+   {
+    "holder": "carol.near-postmoney-8624.testnet",
+    "class": 1,
+    "shares": "3589375",
+    "preference": "4000000000000",
+    "locked": "0"
+   },
+   {
+    "holder": "bob.near-postmoney-8624.testnet",
+    "class": 1,
+    "shares": "448671",
+    "preference": "499998970000",
+    "locked": "0"
+   },
+   {
+    "holder": "dave.near-postmoney-8624.testnet",
+    "class": 1,
+    "shares": "448673",
+    "preference": "500001030000",
+    "locked": "0"
+   },
+   {
+    "holder": "acme-board-8624.sputnik-v2.testnet",
+    "class": 0,
+    "shares": "50000",
+    "preference": "0",
+    "locked": "0"
+   },
+   {
+    "holder": "dave.near-postmoney-8624.testnet",
+    "class": 0,
+    "shares": "100000",
+    "preference": "0",
+    "locked": "0"
+   }
+  ],
+  "options": "650001",
+  "pool": "1794999",
+  "certificates": [
+   {
+    "token_id": "3",
+    "owner": "bob.near-postmoney-8624.testnet",
+    "round": 3,
+    "purchase": "50000000000",
+    "terms": {
+     "cap": "30000000000000",
+     "discount_bps": 2000,
+     "mfn": false,
+     "pro_rata": false
+    },
+    "issued": "1794573998",
+    "amended_from_round": 2
+   },
+   {
+    "token_id": "4",
+    "owner": "alice.near-postmoney-8624.testnet",
+    "round": 3,
+    "purchase": "100000000000",
+    "terms": {
+     "cap": "30000000000000",
+     "discount_bps": 2000,
+     "mfn": false,
+     "pro_rata": false
+    },
+    "issued": "1794574040",
+    "amended_from_round": null
+   }
+  ],
+  "company_capitalization": "18036607",
+  "as_converted": [
+   {
+    "holder": "ada.near-postmoney-8624.testnet",
+    "label": "Common",
+    "shares": "5900000"
+   },
+   {
+    "holder": "ben.near-postmoney-8624.testnet",
+    "label": "Common",
+    "shares": "3200000"
+   },
+   {
+    "holder": "alice.near-postmoney-8624.testnet",
+    "label": "Series A-1 (Safe Preferred)",
+    "shares": "588235"
+   },
+   {
+    "holder": "bob.near-postmoney-8624.testnet",
+    "label": "Series A-2 (Safe Preferred)",
+    "shares": "1176470"
+   },
+   {
+    "holder": "carol.near-postmoney-8624.testnet",
+    "label": "Series A",
+    "shares": "3589375"
+   },
+   {
+    "holder": "bob.near-postmoney-8624.testnet",
+    "label": "Series A",
+    "shares": "448671"
+   },
+   {
+    "holder": "dave.near-postmoney-8624.testnet",
+    "label": "Series A",
+    "shares": "448673"
+   },
+   {
+    "holder": "acme-board-8624.sputnik-v2.testnet",
+    "label": "Common",
+    "shares": "50000"
+   },
+   {
+    "holder": "dave.near-postmoney-8624.testnet",
+    "label": "Common",
+    "shares": "100000"
+   },
+   {
+    "holder": "bob.near-postmoney-8624.testnet",
+    "label": "SAFE #3 (at its cap)",
+    "shares": "30061"
+   },
+   {
+    "holder": "alice.near-postmoney-8624.testnet",
+    "label": "SAFE #4 (at its cap)",
+    "shares": "60122"
+   },
+   {
+    "holder": "options",
+    "label": "Options issued and promised",
+    "shares": "650001"
+   },
+   {
+    "holder": "pool",
+    "label": "Unissued option pool",
+    "shares": "1794999"
+   }
+  ],
+  "uncapped_safes": [],
+  "rofr_secs": "120",
+  "owed": []
+ },
+ "rounds": [
+  {
+   "id": 0,
+   "terms": {
+    "name": "Pre-seed SAFE ($4m post-money cap)",
+    "safe": {
+     "cap": "4000000000000",
+     "discount_bps": 0,
+     "mfn": false,
+     "pro_rata": false
+    },
+    "min_raise": "100000000000",
+    "max_raise": "200000000000",
+    "deadline": "1797165536"
+   },
+   "token": "usdc.near-postmoney-8624.testnet",
+   "opened": "1794573607",
+   "raised": "200000000000",
+   "status": "Closed",
+   "investments": [
+    {
+     "investor": "alice.near-postmoney-8624.testnet",
+     "amount": "200000000000",
+     "refunded": false
+    }
+   ]
+  },
+  {
+   "id": 1,
+   "terms": {
+    "name": "Seed SAFE ($8m post-money cap, pro rata)",
+    "safe": {
+     "cap": "8000000000000",
+     "discount_bps": 0,
+     "mfn": false,
+     "pro_rata": true
+    },
+    "min_raise": "400000000000",
+    "max_raise": "800000000000",
+    "deadline": "1797165536"
+   },
+   "token": "usdc.near-postmoney-8624.testnet",
+   "opened": "1794573607",
+   "raised": "800000000000",
+   "status": "Closed",
+   "investments": [
+    {
+     "investor": "bob.near-postmoney-8624.testnet",
+     "amount": "800000000000",
+     "refunded": false
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "terms": {
+    "name": "MFN SAFE",
+    "safe": {
+     "cap": null,
+     "discount_bps": 0,
+     "mfn": true,
+     "pro_rata": false
+    },
+    "min_raise": "25000000000",
+    "max_raise": "100000000000",
+    "deadline": "1797165755"
+   },
+   "token": "usdc.near-postmoney-8624.testnet",
+   "opened": "1794573955",
+   "raised": "50000000000",
+   "status": "Closed",
+   "investments": [
+    {
+     "investor": "bob.near-postmoney-8624.testnet",
+     "amount": "50000000000",
+     "refunded": false
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "terms": {
+    "name": "Bridge SAFE ($30m cap, 20% discount)",
+    "safe": {
+     "cap": "30000000000000",
+     "discount_bps": 2000,
+     "mfn": false,
+     "pro_rata": false
+    },
+    "min_raise": "50000000000",
+    "max_raise": "250000000000",
+    "deadline": "1797165755"
+   },
+   "token": "usdc.near-postmoney-8624.testnet",
+   "opened": "1794573997",
+   "raised": "100000000000",
+   "status": "Closed",
+   "investments": [
+    {
+     "investor": "alice.near-postmoney-8624.testnet",
+     "amount": "100000000000",
+     "refunded": false
+    }
+   ]
+  }
+ ],
+ "offers": [
+  {
+   "id": 0,
+   "seller": "ada.near-postmoney-8624.testnet",
+   "buyer": "dave.near-postmoney-8624.testnet",
+   "class": 0,
+   "shares": "100000",
+   "price": "50000000000",
+   "status": "Settled",
+   "window_ends": "1794573915"
+  },
+  {
+   "id": 1,
+   "seller": "ben.near-postmoney-8624.testnet",
+   "buyer": "carol.near-postmoney-8624.testnet",
+   "class": 0,
+   "shares": "50000",
+   "price": "30000000000",
+   "status": "Matched",
+   "window_ends": "1794573932"
+  }
+ ],
+ "priced_rounds": [
+  {
+   "name": "Series A",
+   "executed": "1794573777",
+   "price": "1114400",
+   "state_hash": "416d871c7aa8958d8f50b196d3afa4773ba64f133526f0624d7db560ddc4ab1a",
+   "preview": "{\"name\":\"Series A\",\"version\":\"3\",\"state_hash\":\"416d871c7aa8958d8f50b196d3afa4773ba64f133526f0624d7db560ddc4ab1a\",\"price\":\"1114400\",\"conversion\":{\"price\":\"1114400\",\"exact_price\":\"51000000000/45763\",\"company_capitalization\":\"11764705\",\"safes\":[{\"shares\":\"588235\",\"basis\":\"cap\",\"other_basis_shares\":\"179468\"},{\"shares\":\"1176470\",\"basis\":\"cap\",\"other_basis_shares\":\"717875\"}],\"safe_shares\":\"1764705\",\"pool_increase\":\"1695000\",\"pool_after\":\"1794999\",\"new_shares\":[\"3589375\",\"448671\",\"448673\"],\"new_shares_total\":\"4486719\",\"pre_money_shares\":\"13459705\",\"post_money_shares\":\"17946424\"},\"safes\":[{\"token_id\":\"1\",\"owner\":\"alice.near-postmoney-8624.testnet\",\"round\":0,\"purchase\":\"200000000000\",\"discount_bps\":0,\"shares\":\"588235\",\"basis\":\"cap\",\"other_basis_shares\":\"179468\",\"pro_rata_shares\":null},{\"token_id\":\"2\",\"owner\":\"bob.near-postmoney-8624.testnet\",\"round\":1,\"purchase\":\"800000000000\",\"discount_bps\":0,\"shares\":\"1176470\",\"basis\":\"cap\",\"other_basis_shares\":\"717875\",\"pro_rata_shares\":\"448671\"}],\"investors\":[{\"account\":\"carol.near-postmoney-8624.testnet\",\"cash\":\"4000000000000\",\"shares\":\"3589375\"},{\"account\":\"bob.near-postmoney-8624.testnet\",\"cash\":\"499998970000\",\"shares\":\"448671\"},{\"account\":\"dave.near-postmoney-8624.testnet\",\"cash\":\"500001030000\",\"shares\":\"448673\"}]}"
+  }
+ ],
+ "certificates": [
+  {
+   "token_id": "3",
+   "owner_id": "bob.near-postmoney-8624.testnet",
+   "metadata": {
+    "title": "SAFE #3 · $50,000 · $30,000,000 post-money cap · 20% discount",
+    "description": "A post-money SAFE issued by Acme Robotics, Inc. in Bridge SAFE ($30m cap, 20% discount). It converts automatically at the company's next priced round (the contract computes the shares) or pays out in a sale. It moves only with the board's consent.",
+    "media": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 360'%3E%3Crect width='600' height='360' fill='%23f4efe4'/%3E%3Crect x='14' y='14' width='572' height='332' fill='none' stroke='%231f2a24' stroke-width='2'/%3E%3Crect x='22' y='22' width='556' height='316' fill='none' stroke='%231f2a24' stroke-width='.6'/%3E%3Cg font-family='Georgia,serif' text-anchor='middle' fill='%231f2a24'%3E%3Ctext x='300' y='66' font-size='12' letter-spacing='4'%3ESIMPLE AGREEMENT FOR FUTURE EQUITY%3C/text%3E%3Ctext x='300' y='112' font-size='28'%3EAcme Robotics, Inc.%3C/text%3E%3Ctext x='300' y='182' font-size='46' fill='%238a3a1f'%3E$50,000%3C/text%3E%3Ctext x='300' y='220' font-size='15'%3E$30,000,000 post-money cap · 20%25 discount%3C/text%3E%3Ctext x='300' y='278' font-size='13'%3Eheld by bob.near-postmoney-8624.testnet%3C/text%3E%3Ctext x='300' y='312' font-size='11' letter-spacing='1'%3ENo. 3 · Bridge SAFE ($30m cap, 20%25 discount) · Postmoney on NEAR%3C/text%3E%3C/g%3E%3C/svg%3E",
+    "copies": 1,
+    "issued_at": "1794573998000",
+    "extra": "{\"purchase\":\"50000000000\",\"cap\":\"30000000000000\",\"discount_bps\":2000,\"mfn\":false,\"pro_rata\":false,\"round\":3,\"amended_from_round\":2}"
+   },
+   "approved_account_ids": {}
+  },
+  {
+   "token_id": "4",
+   "owner_id": "alice.near-postmoney-8624.testnet",
+   "metadata": {
+    "title": "SAFE #4 · $100,000 · $30,000,000 post-money cap · 20% discount",
+    "description": "A post-money SAFE issued by Acme Robotics, Inc. in Bridge SAFE ($30m cap, 20% discount). It converts automatically at the company's next priced round (the contract computes the shares) or pays out in a sale. It moves only with the board's consent.",
+    "media": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 360'%3E%3Crect width='600' height='360' fill='%23f4efe4'/%3E%3Crect x='14' y='14' width='572' height='332' fill='none' stroke='%231f2a24' stroke-width='2'/%3E%3Crect x='22' y='22' width='556' height='316' fill='none' stroke='%231f2a24' stroke-width='.6'/%3E%3Cg font-family='Georgia,serif' text-anchor='middle' fill='%231f2a24'%3E%3Ctext x='300' y='66' font-size='12' letter-spacing='4'%3ESIMPLE AGREEMENT FOR FUTURE EQUITY%3C/text%3E%3Ctext x='300' y='112' font-size='28'%3EAcme Robotics, Inc.%3C/text%3E%3Ctext x='300' y='182' font-size='46' fill='%238a3a1f'%3E$100,000%3C/text%3E%3Ctext x='300' y='220' font-size='15'%3E$30,000,000 post-money cap · 20%25 discount%3C/text%3E%3Ctext x='300' y='278' font-size='13'%3Eheld by alice.near-postmoney-8624.testnet%3C/text%3E%3Ctext x='300' y='312' font-size='11' letter-spacing='1'%3ENo. 4 · Bridge SAFE ($30m cap, 20%25 discount) · Postmoney on NEAR%3C/text%3E%3C/g%3E%3C/svg%3E",
+    "copies": 1,
+    "issued_at": "1794574040000",
+    "extra": "{\"purchase\":\"100000000000\",\"cap\":\"30000000000000\",\"discount_bps\":2000,\"mfn\":false,\"pro_rata\":false,\"round\":3,\"amended_from_round\":null}"
+   },
+   "approved_account_ids": {}
+  }
+ ],
+ "proposals": [
+  {
+   "id": 0,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Open two post-money SAFE rounds: $100k-$200k at a $4m cap; $400k-$800k at an $8m cap with a pro rata side letter",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "acme.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "open_round",
+       "args": "eyJ0ZXJtcyI6eyJuYW1lIjoiUHJlLXNlZWQgU0FGRSAoJDRtIHBvc3QtbW9uZXkgY2FwKSIsInNhZmUiOnsiY2FwIjoiNDAwMDAwMDAwMDAwMCIsImRpc2NvdW50X2JwcyI6MCwibWZuIjpmYWxzZSwicHJvX3JhdGEiOmZhbHNlfSwibWluX3JhaXNlIjoiMTAwMDAwMDAwMDAwIiwibWF4X3JhaXNlIjoiMjAwMDAwMDAwMDAwIiwiZGVhZGxpbmUiOiIxNzk3MTY1NTM2In19",
+       "deposit": "0",
+       "gas": "30000000000000"
+      },
+      {
+       "method_name": "open_round",
+       "args": "eyJ0ZXJtcyI6eyJuYW1lIjoiU2VlZCBTQUZFICgkOG0gcG9zdC1tb25leSBjYXAsIHBybyByYXRhKSIsInNhZmUiOnsiY2FwIjoiODAwMDAwMDAwMDAwMCIsImRpc2NvdW50X2JwcyI6MCwibWZuIjpmYWxzZSwicHJvX3JhdGEiOnRydWV9LCJtaW5fcmFpc2UiOiI0MDAwMDAwMDAwMDAiLCJtYXhfcmFpc2UiOiI4MDAwMDAwMDAwMDAiLCJkZWFkbGluZSI6IjE3OTcxNjU1MzYifX0=",
+       "deposit": "0",
+       "gas": "30000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "ada.near-postmoney-8624.testnet": "Approve",
+    "ben.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794573538303271470"
+  },
+  {
+   "id": 1,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Close both SAFE rounds: the USDC goes to the treasury (this DAO), each investor gets a SAFE certificate",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "acme.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "close_round",
+       "args": "eyJyb3VuZCI6MH0=",
+       "deposit": "0",
+       "gas": "100000000000000"
+      },
+      {
+       "method_name": "close_round",
+       "args": "eyJyb3VuZCI6MX0=",
+       "deposit": "0",
+       "gas": "100000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "ada.near-postmoney-8624.testnet": "Approve",
+    "erin.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794573642278738483"
+  },
+  {
+   "id": 2,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Grant 1 option from the pool (the cap table moves after the Series A preview)",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "acme.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "grant_options",
+       "args": "eyJjb3VudCI6IjEifQ==",
+       "deposit": "0",
+       "gas": "20000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "ben.near-postmoney-8624.testnet": "Approve",
+    "ada.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794573673214748960"
+  },
+  {
+   "id": 3,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Execute the Series A as previewed (stale hash ca9aaaa6c44e…)",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "acme.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "execute_priced_round",
+       "args": "eyJ0ZXJtcyI6eyJuYW1lIjoiU2VyaWVzIEEiLCJwcmVfbW9uZXkiOiIxNTAwMDAwMDAwMDAwMCIsImludmVzdG9ycyI6W3siYWNjb3VudCI6ImNhcm9sLm5lYXItcG9zdG1vbmV5LTg2MjQudGVzdG5ldCIsImNhc2giOiI0MDAwMDAwMDAwMDAwIn0seyJhY2NvdW50IjoiYm9iLm5lYXItcG9zdG1vbmV5LTg2MjQudGVzdG5ldCIsImNhc2giOiI0OTk5OTg5NzAwMDAifSx7ImFjY291bnQiOiJkYXZlLm5lYXItcG9zdG1vbmV5LTg2MjQudGVzdG5ldCIsImNhc2giOiI1MDAwMDEwMzAwMDAifV0sInBvb2wiOnsiaW5jcmVhc2UiOiIxNjk1MDAwIn0sInByaWNlX2RlY2ltYWxzIjo0fSwiZXhwZWN0ZWRfaGFzaCI6ImNhOWFhYWE2YzQ0ZWUzNmFjODIxOThhMTc4YzBlZWRkMTQzZDNkN2U2ZjY3YTljYmQ2ZDhhMmU5OTk2Njc3YTkifQ==",
+       "deposit": "0",
+       "gas": "200000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "ada.near-postmoney-8624.testnet": "Approve",
+    "erin.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794573703741577227"
+  },
+  {
+   "id": 4,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Execute the Series A: $5m at $15m pre-money, price $1.1144, hash 416d871c7aa8958d8f50b196d3afa4773ba64f133526f0624d7db560ddc4ab1a",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "acme.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "execute_priced_round",
+       "args": "eyJ0ZXJtcyI6eyJuYW1lIjoiU2VyaWVzIEEiLCJwcmVfbW9uZXkiOiIxNTAwMDAwMDAwMDAwMCIsImludmVzdG9ycyI6W3siYWNjb3VudCI6ImNhcm9sLm5lYXItcG9zdG1vbmV5LTg2MjQudGVzdG5ldCIsImNhc2giOiI0MDAwMDAwMDAwMDAwIn0seyJhY2NvdW50IjoiYm9iLm5lYXItcG9zdG1vbmV5LTg2MjQudGVzdG5ldCIsImNhc2giOiI0OTk5OTg5NzAwMDAifSx7ImFjY291bnQiOiJkYXZlLm5lYXItcG9zdG1vbmV5LTg2MjQudGVzdG5ldCIsImNhc2giOiI1MDAwMDEwMzAwMDAifV0sInBvb2wiOnsiaW5jcmVhc2UiOiIxNjk1MDAwIn0sInByaWNlX2RlY2ltYWxzIjo0fSwiZXhwZWN0ZWRfaGFzaCI6IjQxNmQ4NzFjN2FhODk1OGQ4ZjUwYjE5NmQzYWZhNDc3M2JhNjRmMTMzNTI2ZjA2MjRkN2RiNTYwZGRjNGFiMWEifQ==",
+       "deposit": "0",
+       "gas": "250000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "ada.near-postmoney-8624.testnet": "Approve",
+    "ben.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794573757495029173"
+  },
+  {
+   "id": 5,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Exercise the company's right of first refusal on ben's offer: the treasury buys the 50,000 shares at $30,000",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "usdc.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "ft_transfer_call",
+       "args": "eyJyZWNlaXZlcl9pZCI6ImFjbWUubmVhci1wb3N0bW9uZXktODYyNC50ZXN0bmV0IiwiYW1vdW50IjoiMzAwMDAwMDAwMDAiLCJtc2ciOiJ7XCJyb2ZyXCI6MX0ifQ==",
+       "deposit": "1",
+       "gas": "150000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "ada.near-postmoney-8624.testnet": "Approve",
+    "erin.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794573820863349734"
+  },
+  {
+   "id": 6,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Open an MFN SAFE round: no cap, no discount, most-favored-nation; $25k-$100k",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "acme.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "open_round",
+       "args": "eyJ0ZXJtcyI6eyJuYW1lIjoiTUZOIFNBRkUiLCJzYWZlIjp7ImNhcCI6bnVsbCwiZGlzY291bnRfYnBzIjowLCJtZm4iOnRydWUsInByb19yYXRhIjpmYWxzZX0sIm1pbl9yYWlzZSI6IjI1MDAwMDAwMDAwIiwibWF4X3JhaXNlIjoiMTAwMDAwMDAwMDAwIiwiZGVhZGxpbmUiOiIxNzk3MTY1NzU1In19",
+       "deposit": "0",
+       "gas": "30000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "ada.near-postmoney-8624.testnet": "Approve",
+    "ben.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794573937480550456"
+  },
+  {
+   "id": 7,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Close the MFN round; open a bridge SAFE round: $30m post-money cap, 20% discount, $50k-$250k",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "acme.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "close_round",
+       "args": "eyJyb3VuZCI6Mn0=",
+       "deposit": "0",
+       "gas": "100000000000000"
+      },
+      {
+       "method_name": "open_round",
+       "args": "eyJ0ZXJtcyI6eyJuYW1lIjoiQnJpZGdlIFNBRkUgKCQzMG0gY2FwLCAyMCUgZGlzY291bnQpIiwic2FmZSI6eyJjYXAiOiIzMDAwMDAwMDAwMDAwMCIsImRpc2NvdW50X2JwcyI6MjAwMCwibWZuIjpmYWxzZSwicHJvX3JhdGEiOmZhbHNlfSwibWluX3JhaXNlIjoiNTAwMDAwMDAwMDAiLCJtYXhfcmFpc2UiOiIyNTAwMDAwMDAwMDAiLCJkZWFkbGluZSI6IjE3OTcxNjU3NTUifX0=",
+       "deposit": "0",
+       "gas": "30000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "erin.near-postmoney-8624.testnet": "Approve",
+    "ada.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794573977720070984"
+  },
+  {
+   "id": 8,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Close the bridge SAFE round",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "acme.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "close_round",
+       "args": "eyJyb3VuZCI6M30=",
+       "deposit": "0",
+       "gas": "100000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "ada.near-postmoney-8624.testnet": "Approve",
+    "ben.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794574018875557115"
+  }
+ ],
+ "treasury_usdc": "1120000000000"
+}

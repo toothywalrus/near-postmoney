@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acme Robotics · cap table on NEAR · Postmoney</title>
+    <meta name="description" content="A company cap table on NEAR: post-money SAFE rounds in USDC with escrow, SAFE certificates as NFTs, exact conversion at the priced round, a Sputnik DAO board. Read live from testnet." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231f2a24'/%3E%3Cpath d='M9 23V9h8a5 5 0 0 1 0 10h-8' fill='none' stroke='%23f4efe4' stroke-width='2.6'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="./assets/index-CEH5848r.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DLoJ_2fL.css">
+  </head>
+  <body>
+    <header class="masthead">
+      <a class="wordmark" href="#top" aria-label="Postmoney">Post<span>money</span></a>
+      <div class="status" id="status" role="status"><span class="dot"></span><span class="status-text">Reading testnet…</span></div>
+    </header>
+    <main id="top">
+      <section class="hero">
+        <p class="kicker">A cap table on NEAR · testnet</p>
+        <h1 id="company">Acme Robotics, Inc.</h1>
+        <p class="lede">
+          Its SAFEs raise USDC into escrow, become NFTs, and convert themselves at the next priced round by the post-money
+          SAFE's own formula, to the share. Its board is a Sputnik DAO: every issuance is a proposal it votes on, against a
+          hash of the numbers it saw.
+        </p>
+        <dl class="facts" id="facts"></dl>
+      </section>
+
+      <section id="own" class="sheet">
+        <header><span class="sec">§1</span><h2>Who owns Acme</h2></header>
+        <p class="note">Fully diluted, with each outstanding SAFE at its cap, as the post-money SAFE promises: purchase ÷ cap of the Company Capitalization.</p>
+        <div class="bar" id="bar-now" aria-label="Ownership today"></div>
+        <div class="legend" id="legend-now"></div>
+      </section>
+
+      <section id="model" class="sheet">
+        <header><span class="sec">§2</span><h2>Model the next priced round</h2></header>
+        <p class="note">Every number below comes from the contract's own <code>preview_priced_round</code>, the view the board votes on. Move a slider: the outstanding SAFEs convert, the pool tops up, the bar redraws.</p>
+        <div class="controls">
+          <label><span>Pre-money valuation</span><output id="o-pre"></output><input type="range" id="i-pre" min="0" max="1000" value="560" /></label>
+          <label><span>New money</span><output id="o-new"></output><input type="range" id="i-new" min="0" max="1000" value="500" /></label>
+          <label><span>Unissued pool after the round</span><output id="o-pool"></output><input type="range" id="i-pool" min="0" max="25" value="12" /></label>
+        </div>
+        <div class="bars-pair">
+          <div class="bar-label">Today</div>
+          <div class="bar thin" id="bar-before"></div>
+          <div class="bar-label">After the Series B</div>
+          <div class="bar" id="bar-after"></div>
+        </div>
+        <div class="readout" id="readout"></div>
+        <div class="conversions" id="conversions"></div>
+      </section>
+
+      <section id="certs" class="sheet">
+        <header><span class="sec">§3</span><h2>SAFE certificates</h2></header>
+        <p class="note">Each SAFE is a NEP-171 token minted to its investor when the board closes the round. The certificate is drawn by the contract itself. It moves only with the board's consent and is burned when it converts.</p>
+        <div class="cert-grid" id="cert-grid"></div>
+        <h3 class="minor">Converted</h3>
+        <div id="converted"></div>
+      </section>
+
+      <section id="exit" class="sheet">
+        <header><span class="sec">§4</span><h2>If Acme is sold</h2></header>
+        <p class="note">The contract's <code>waterfall</code> view: each preferred holder takes its 1x preference or converts to common, whichever pays more; each SAFE its purchase back or its conversion amount.</p>
+        <div class="controls one">
+          <label><span>Sale price</span><output id="o-exit"></output><input type="range" id="i-exit" min="0" max="1000" value="520" /></label>
+        </div>
+        <div class="waterfall" id="waterfall"></div>
+      </section>
+
+      <section id="series-a" class="sheet">
+        <header><span class="sec">§5</span><h2>The Series A, as the chain executed it</h2></header>
+        <p class="note">Acme is the company in YC's <a href="https://www.ycombinator.com/documents" rel="noopener">Post-Money Safe User Guide</a>, Appendix II, Example 1. Its board ran Question 2's Series A on testnet: $5m at $15m pre-money, a 1,695,000-share pool increase.</p>
+        <div class="compare" id="compare"></div>
+      </section>
+
+      <section id="board" class="sheet">
+        <header><span class="sec">§6</span><h2>The board's record</h2></header>
+        <p class="note" id="board-note"></p>
+        <ol class="proposals" id="proposals"></ol>
+      </section>
+
+      <section id="secondary" class="sheet">
+        <header><span class="sec">§7</span><h2>Secondary sales</h2></header>
+        <p class="note">A holder offers shares to a named buyer, the buyer pays into escrow, and the company has a window to buy them itself at that price. Only then does the trade settle.</p>
+        <div id="offers"></div>
+      </section>
+    </main>
+    <footer class="colophon">
+      <p><strong>tUSDC-TEST is a test token with no value</strong>, and Acme Robotics is a made-up company. The contracts are on NEAR testnet.</p>
+      <p id="links"></p>
+    </footer>
+    <div class="tip" id="tip" hidden></div>
+  </body>
+</html>
