@@ -30,7 +30,7 @@ Shorter alternative (one post):
 | 26-34 s | §4 the SVG certificates | "Each SAFE is an NFT minted when the round closed, drawn by the contract. It moves only with the board's consent." |
 | 34-44 s | §6 the YC vs chain table, all ticks | "This is YC's worked example from the Post-Money SAFE guide, run on testnet by the DAO. Every line matches, to the share." |
 | 44-52 s | §7, proposal 3 in red | "The board votes on a hash of the numbers. When the cap table moved after this vote, the contract refused to execute it." |
-| 52-60 s | Terminal: `npm run judge`, the table of PASS | "Twenty-five hundred random rounds against an independent implementation, fifty-five attack checks, twenty broken builds caught. One command." |
+| 52-60 s | Terminal: `npm run judge`, the table of PASS | "Twenty-five hundred random rounds against an independent implementation, sixty attack checks, twenty-one broken builds caught. One command." |
 
 ## Before posting
 

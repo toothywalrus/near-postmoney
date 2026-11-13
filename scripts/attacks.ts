@@ -219,6 +219,32 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     const t2 = await chain.view<any>(A2, "cap_table");
     const off = (await chain.view<any[]>(A2, "offers"))[0];
     c.check(off.status === "Funded" && t2.positions.length === 1 && t2.positions[0].shares === "1000000" && t2.positions[0].locked === "1000", "the payout to the seller fails: the shares go back to the seller (still locked), the offer is paid and can settle again", `${off.status}, ${JSON.stringify(t2.positions.map((x: any) => [x.holder.split(".")[0], x.shares, x.locked]))}`);
+    // A third company whose founder never registered with the token: the company matches her offer (right of first
+    // refusal), the payment to her fails, and it stays claimable with withdraw_owed instead of being lost.
+    const ghost3 = await w.sub("ghost3");
+    const acme3 = await w.sub("acme3");
+    await acme3.signAndSendTransaction({
+      receiverId: acme3.accountId,
+      actions: [actions.deployContract(postmoney ?? postmoneyWasm()), actions.functionCall("new", { owner_id: B, company: "Acme 3", usdc: U, treasury: B, founders: [{ account: ghost3.accountId, shares: "1000000" }], options: "0", pool: "0", rofr_secs: "60" }, 100n * TGAS, 0n)],
+      waitUntil: "FINAL",
+    });
+    const A3 = acme3.accountId;
+    ok(await call(root, U, "storage_deposit", { account_id: A3 }, milli(2)), "register acme3");
+    ok(await call(ghost3, A3, "storage_deposit", {}, milli(50)), "ghost3 storage");
+    const o3 = await call(ghost3, A3, "offer_shares", { class: 0, shares: "1000", price: usd(1_000).toString(), buyer: dave.accountId });
+    ok(o3, "ghost3 offers shares to dave");
+    ok(await call(dave, U, "ft_transfer_call", { receiver_id: A3, amount: usd(1_000).toString(), msg: JSON.stringify({ buy: o3.value }) }, 1n, 150n), "dave pays");
+    const daveB = await bal(dave.accountId);
+    // The company matches; its payment to ghost3 fails (she isn't registered with the token), so this call reports a
+    // failed receipt by design: the check below reads what happened.
+    await call(board, U, "ft_transfer_call", { receiver_id: A3, amount: usd(1_000).toString(), msg: JSON.stringify({ rofr: o3.value }) }, 1n, 150n);
+    const t3 = await chain.view<any>(A3, "cap_table");
+    c.check(JSON.stringify(t3.owed) === JSON.stringify([[ghost3.accountId, usd(1_000).toString()]]) && BigInt(await chain.view(U, "ft_balance_of", { account_id: A3 })) === usd(1_000) && (await bal(dave.accountId)) - daveB === usd(1_000),
+      "the company's ROFR payment to a seller fails: the $1,000 stays in the cap table, owed to her (and the buyer's escrow came back)", JSON.stringify(t3.owed));
+    ok(await call(root, U, "storage_deposit", { account_id: ghost3.accountId }, milli(2)), "ghost3 registers with the token");
+    ok(await call(mallory, A3, "withdraw_owed", { account: ghost3.accountId }, 0n, 100n), "anyone pays out what is owed");
+    c.check((await bal(ghost3.accountId)) === usd(1_000) && (await chain.view<any>(A3, "cap_table")).owed.length === 0, "withdraw_owed pays the seller her $1,000; nothing is owed any more");
+    c.refused(await call(mallory, A3, "withdraw_owed", { account: ghost3.accountId }, 0n, 100n), "nothing owed", "withdraw what is owed twice");
   } catch (e) {
     if (!(e instanceof StopOnFail)) c.check(false, "the suite ran to the end", String((e as Error)?.stack ?? e).slice(0, 300));
   }

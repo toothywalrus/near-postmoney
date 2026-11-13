@@ -15,7 +15,7 @@ waterfall and secondary sales (with the company's right of first refusal) are vi
 >   ([links below](#on-testnet)); a later round missed its minimum and was refunded, one refund failing and rolling
 >   back on chain. `npm run verify` re-reads all of it (23 checks).
 > - **Runs locally, free:** `npm run judge`: the kill test on the contract's wasm (2,500 random rounds + 2,500 random
->   exits, every number equal to an independent reference), the attack suite (57 checks), the company's whole life
+>   exits, every number equal to an independent reference), the attack suite (60 checks), the company's whole life
 >   with a real Sputnik DAO on a sandbox (44 checks), mutation checks (21/21 caught with `npm run mutants`), the web
 >   page build.
 > - **Mainnet, waits for the owner:** nothing is deployed there. "Invest from any chain" is priced with keyless
@@ -132,15 +132,15 @@ terms under the old hash, a SAFE that changed hands after the preview, and a rep
 
 ## Money safety
 
-`npm run attacks` runs 57 checks on the real wasm, each attack with the refusal it must meet: invest after close, in
+`npm run attacks` runs 60 checks on the real wasm, each attack with the refusal it must meet: invest after close, in
 an unknown token, over the max, without storage, after the deadline; double refund; claim another's refund (the money
 still goes to who paid); close twice or below the minimum; convert twice; move a SAFE without the board's consent or
 to another receiver than consented; front-run the company's right of first refusal; exercise it as a stranger or after
 the window; sell the same shares twice; refund a funded round before the board could close it; pay for someone with no
-storage balance; take all 40 of a round's places with one-unit investments; and two payouts that fail and roll back
-(to the treasury at close, to a seller at settlement). It found a real bug: a failed payout to a secondary seller
-couldn't roll back, because the rollback tried to unlock shares the buyer held unlocked; the buyer's shares now stay
-locked until the seller is paid.
+storage balance; take all 40 of a round's places with one-unit investments; two payouts that fail and roll back (to
+the treasury at close, to a seller at settlement); and a right-of-first-refusal payment that fails and stays claimable
+with `withdraw_owed`. It found a real bug: a failed payout to a secondary seller couldn't roll back, because the
+rollback tried to unlock shares the buyer held unlocked; the buyer's shares now stay locked until the seller is paid.
 
 
 `npm run mutants` builds nothing (the 21 mutants are checked in, `res/mutants/`): it runs the attack suite or the
@@ -162,7 +162,7 @@ out of their own Company Capitalization (pre-money SAFE math) gives Investor A 5
 | `npm run reference` | the reference reproduces YC's four questions; invariants on 2,000 random rounds and exits (5 s, no network) |
 | `npm run property` | the contract's wasm reproduces YC's examples and agrees with the reference on 2,500 + 2,500 random cases |
 | `npm run sandbox` | the company's whole life with a real Sputnik DAO as the board, YC's numbers on chain (44 checks, ~85 s) |
-| `npm run attacks` | 57 checks, each attack refused as stated |
+| `npm run attacks` | 60 checks, each attack refused as stated |
 | `npm run mutants` | 21/21 broken contracts caught (about 8 minutes) |
 | `npm run verify` | the testnet deployment re-read: code = `res/*.wasm`, the DAO owns it, YC's Series A on chain, the stale proposal refused, the refunds and the rolled-back one (23 checks) |
 | `npm run build:web`, then serve `web/dist/` | the page: Acme's cap table live from testnet, the next round modelled by the contract's own preview, the waterfall slider, the SAFE certificates |
@@ -220,7 +220,8 @@ MFN may adopt a later round), then [decision 0007](https://testnet.nearblocks.io
   the money and returns what it didn't keep; the token refunds that in the same transaction. A panic (wrong token,
   closed round, no storage) refunds everything.
 - **Promises and callbacks make payouts safe.** Closing a round, refunding, settling a sale: each `ft_transfer` has a
-  callback that rolls the state back if the transfer failed (tested by making them fail).
+  callback that rolls the state back if the transfer failed; a right-of-first-refusal payment that fails stays owed,
+  claimable with `withdraw_owed` (tested by making them fail).
 - **NEP-171 tokens are the SAFE certificates**, burned on conversion, with NEP-297 events wallets and explorers read.
 - **A Sputnik DAO is the board**: the cap table's `owner` is the DAO account, so every issuance is a FunctionCall
   proposal its council votes on. The same Sputnik bytecode runs in the local sandbox.
