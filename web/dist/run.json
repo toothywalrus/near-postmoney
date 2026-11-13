@@ -272,6 +272,73 @@
       "what": "bob's MFN SAFE #3 adopts the bridge round's terms ($30m cap, 20% discount)",
       "ok": true,
       "tx": "FzsMas1Yvfzj6cc1gatky1Ln7orvbEhj4jumwcakhanz"
+    },
+    {
+      "what": "erin adds 0.01 NEAR storage balance on the cap table",
+      "ok": true,
+      "tx": "33uw7iyM9c1DYx9DcTvwsUJ8bBDcXHtDgHJTfAr5FAT8"
+    },
+    {
+      "what": "proposal: Open a second bridge round: $40m post-money cap, $500k minimum, closing in 150 seconds",
+      "ok": true,
+      "tx": "6iwVZEPt3JCmVCmRYnE9jvWkf98VeX5eht15m279NBXE",
+      "proposal": 9
+    },
+    {
+      "what": "  ada votes for proposal 9",
+      "ok": true,
+      "tx": "BXyC2R68ZqPue1g4A82bvVEk6nXoxCUWhcqM972TgQkh"
+    },
+    {
+      "what": "  ben votes: proposal 9 Approved",
+      "ok": true,
+      "tx": "6VhsariDfbbbAp1eyUhpuNHjrFqJScupLqxajK6LUftu",
+      "proposal": 9,
+      "status": "Approved"
+    },
+    {
+      "what": "dave pays $5,000 into Bridge II before adding a storage balance: refused, the token returns the $5,000",
+      "ok": true,
+      "tx": "AF6n7HmMdfqP9no3EPShJ4Ne9XJZGt1ayVezZF6GoRNj",
+      "reason": "storage: dave.near-postmoney-8624.testnet needs 4530000000000000000000 yoctoNEAR more storage balance (storage_deposit)",
+      "expected_refusal": true
+    },
+    {
+      "what": "dave adds 0.01 NEAR storage balance on the cap table",
+      "ok": true,
+      "tx": "BN7QNFfgKAv1tmsfAiyAwmmQMJ4kV7cn3qW6PYryen3a"
+    },
+    {
+      "what": "dave pays $5,000 into Bridge II",
+      "ok": true,
+      "tx": "Ak1W28bpk3UoHu2GdfzsF2ovdPT7UGrZNuwLi4o3RQAY"
+    },
+    {
+      "what": "carol pays $3,000 into Bridge II for erin (the investment is erin's)",
+      "ok": true,
+      "tx": "7keqbgqp23S3ZcdFcm3jzvnkJLKmzUWMYDvo6GiVZrdL"
+    },
+    {
+      "what": "the round missed its minimum: bob (anyone) refunds dave's $5000, which goes to dave",
+      "ok": true,
+      "tx": "7MnqCKhLviU8WBVi81YXdDY1rxyPEG45u1VvooWLN4XY"
+    },
+    {
+      "what": "bob refunds erin, who never registered with the token: the transfer fails and the contract rolls the refund back (still erin's, still in escrow)",
+      "ok": true,
+      "tx": "2svaE7YeFcH2RbnwMhHWp2wM2jf6fCm9Zo5TAvvEB3Yx",
+      "expected_refusal": true,
+      "refusal": "receiver is not registered"
+    },
+    {
+      "what": "erin registers with the test USDC",
+      "ok": true,
+      "tx": "D24EeoJ4VamaZojJRRCbUCKL74eDtBw8rc3dPAmRWnX4"
+    },
+    {
+      "what": "bob refunds erin again: the $3000 goes to erin",
+      "ok": true,
+      "tx": "AYTifY7VkMahFUYbbzfunEzPB7q35K6NeEXvzEWKTRyK"
     }
   ],
   "preview": {

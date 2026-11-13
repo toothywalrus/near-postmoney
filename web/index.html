@@ -34,8 +34,14 @@
         <div class="legend" id="legend-now"></div>
       </section>
 
+      <section id="rounds" class="sheet">
+        <header><span class="sec">§2</span><h2>SAFE rounds and their escrow</h2></header>
+        <p class="note">Investors pay test USDC into the contract with <code>ft_transfer_call</code>. It waits there until the board closes the round (the money goes to the treasury, each investor gets a certificate) or the round misses its minimum (anyone can refund anyone, and the money goes back to whose it is).</p>
+        <div id="round-list"></div>
+      </section>
+
       <section id="model" class="sheet">
-        <header><span class="sec">§2</span><h2>Model the next priced round</h2></header>
+        <header><span class="sec">§3</span><h2>Model the next priced round</h2></header>
         <p class="note">Every number below comes from the contract's own <code>preview_priced_round</code>, the view the board votes on. Move a slider: the outstanding SAFEs convert, the pool tops up, the bar redraws.</p>
         <div class="controls">
           <label><span>Pre-money valuation</span><output id="o-pre"></output><input type="range" id="i-pre" min="0" max="1000" value="560" /></label>
@@ -53,7 +59,7 @@
       </section>
 
       <section id="certs" class="sheet">
-        <header><span class="sec">§3</span><h2>SAFE certificates</h2></header>
+        <header><span class="sec">§4</span><h2>SAFE certificates</h2></header>
         <p class="note">Each SAFE is a NEP-171 token minted to its investor when the board closes the round. The certificate is drawn by the contract itself. It moves only with the board's consent and is burned when it converts.</p>
         <div class="cert-grid" id="cert-grid"></div>
         <h3 class="minor">Converted</h3>
@@ -61,7 +67,7 @@
       </section>
 
       <section id="exit" class="sheet">
-        <header><span class="sec">§4</span><h2>If Acme is sold</h2></header>
+        <header><span class="sec">§5</span><h2>If Acme is sold</h2></header>
         <p class="note">The contract's <code>waterfall</code> view: each preferred holder takes its 1x preference or converts to common, whichever pays more; each SAFE its purchase back or its conversion amount.</p>
         <div class="controls one">
           <label><span>Sale price</span><output id="o-exit"></output><input type="range" id="i-exit" min="0" max="1000" value="520" /></label>
@@ -70,19 +76,19 @@
       </section>
 
       <section id="series-a" class="sheet">
-        <header><span class="sec">§5</span><h2>The Series A, as the chain executed it</h2></header>
+        <header><span class="sec">§6</span><h2>The Series A, as the chain executed it</h2></header>
         <p class="note">Acme is the company in YC's <a href="https://www.ycombinator.com/documents" rel="noopener">Post-Money Safe User Guide</a>, Appendix II, Example 1. Its board ran Question 2's Series A on testnet: $5m at $15m pre-money, a 1,695,000-share pool increase.</p>
         <div class="compare" id="compare"></div>
       </section>
 
       <section id="board" class="sheet">
-        <header><span class="sec">§6</span><h2>The board's record</h2></header>
+        <header><span class="sec">§7</span><h2>The board's record</h2></header>
         <p class="note" id="board-note"></p>
         <ol class="proposals" id="proposals"></ol>
       </section>
 
       <section id="secondary" class="sheet">
-        <header><span class="sec">§7</span><h2>Secondary sales</h2></header>
+        <header><span class="sec">§8</span><h2>Secondary sales</h2></header>
         <p class="note">A holder offers shares to a named buyer, the buyer pays into escrow, and the company has a window to buy them itself at that price. Only then does the trade settle.</p>
         <div id="offers"></div>
       </section>

@@ -130,7 +130,25 @@ function renderNow() {
   $("facts").innerHTML = facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
 }
 
-// ---------- §2: modelling the next round ----------
+// ---------- §2: rounds ----------
+function renderRounds() {
+  const status: Record<string, string> = { Closed: "Closed: the money went to the treasury, certificates were minted", Refunding: "Missed its minimum: refunded", Open: "Open", Closing: "Closing" };
+  $("round-list").innerHTML = S.rounds
+    .map((r: any) => {
+      const t = r.terms.safe;
+      const terms = [t.cap ? `${usdShort(t.cap)} post-money cap` : "no cap", t.discount_bps ? `${t.discount_bps / 100}% discount` : "", t.mfn ? "MFN" : "", t.pro_rata ? "pro rata" : ""].filter(Boolean).join(" · ");
+      const max = BigInt(r.terms.max_raise);
+      const paid = r.investments.reduce((a: bigint, i: any) => a + BigInt(i.amount), 0n);
+      const fill = Number((paid * 10_000n) / max) / 100;
+      const minAt = Number((BigInt(r.terms.min_raise) * 10_000n) / max) / 100;
+      const people = r.investments.map((i: any) => `<span class="${i.refunded ? "refunded" : ""}">${esc(short(i.investor))} ${usd(i.amount)}${i.refunded ? " (refunded)" : ""}</span>`).join(", ");
+      const st = r.status === "Open" ? `Open until ${new Date(Number(r.terms.deadline) * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC` : status[r.status] ?? r.status;
+      return `<div class="round"><div class="round-head"><span>${esc(r.terms.name)}<small>${esc(terms)}</small></span><span class="num">${usd(paid)} <small>of ${usdShort(r.terms.min_raise)}–${usdShort(r.terms.max_raise)}</small></span></div><div class="meter"><div class="fill ${r.status === "Refunding" ? "k-treasury" : "k-safepref"}" style="width:${Math.min(fill, 100)}%"></div><i style="left:${minAt}%" title="minimum"></i></div><div class="round-foot"><span>${esc(st)}</span><span>${people || "no investors"}</span></div></div>`;
+    })
+    .join("");
+}
+
+// ---------- §3: modelling the next round ----------
 const logScale = (t: number, lo: number, hi: number) => lo * Math.pow(hi / lo, t / 1000);
 function nice(x: number): number {
   const p = Math.pow(10, Math.floor(Math.log10(x)) - 1);
@@ -322,7 +340,7 @@ function renderSeriesA() {
   $("compare").innerHTML =
     `<div class="row head"><span></span><span class="num">YC's guide</span><span class="num">On chain</span><span></span></div>` +
     rows.map(([k, a, b, ok]) => `<div class="row"><span>${esc(k)}</span><span class="num">${a}</span><span class="num">${b}</span><span class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"}</span></div>`).join("") +
-    `<p class="note" style="margin-top:14px">Executed by proposal 4 of the board${tx ? `, <a href="${txUrl(tx)}">the vote that ran it</a>` : ""}; the preview's hash was <code>${esc(pr.state_hash.slice(0, 16))}…</code>. The guide's pool after is 1,795,000; on chain it is ${shares(p.conversion.pool_after)} because the board granted one option between the preview and the vote (see §6).</p>`;
+    `<p class="note" style="margin-top:14px">Executed by proposal 4 of the board${tx ? `, <a href="${txUrl(tx)}">the vote that ran it</a>` : ""}; the preview's hash was <code>${esc(pr.state_hash.slice(0, 16))}…</code>. The guide's pool after is 1,795,000; on chain it is ${shares(p.conversion.pool_after)} because the board granted one option between the preview and the vote (see §7).</p>`;
 }
 
 // ---------- §6 ----------
@@ -395,6 +413,7 @@ async function main() {
     document.querySelector("#exit .note")!.textContent = "Testnet didn't answer: this waterfall runs in your browser with the reference implementation on the recorded cap table. Live, it is the contract's waterfall view.";
   }
   renderNow();
+  renderRounds();
   renderCerts();
   renderSeriesA();
   renderBoard();

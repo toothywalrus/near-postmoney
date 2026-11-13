@@ -1,6 +1,6 @@
 {
- "recorded_at": "2026-11-13T13:19:52.744Z",
- "block": 277515172,
+ "recorded_at": "2026-11-13T13:57:45.350Z",
+ "block": 277519114,
  "explorer": "https://testnet.nearblocks.io",
  "company": "acme.near-postmoney-8624.testnet",
  "board": "acme-board-8624.sputnik-v2.testnet",
@@ -304,6 +304,37 @@
      "investor": "alice.near-postmoney-8624.testnet",
      "amount": "100000000000",
      "refunded": false
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "terms": {
+    "name": "Bridge II ($40m cap)",
+    "safe": {
+     "cap": "40000000000000",
+     "discount_bps": 0,
+     "mfn": false,
+     "pro_rata": false
+    },
+    "min_raise": "500000000000",
+    "max_raise": "1000000000000",
+    "deadline": "1794578001"
+   },
+   "token": "usdc.near-postmoney-8624.testnet",
+   "opened": "1794577880",
+   "raised": "0",
+   "status": "Refunding",
+   "investments": [
+    {
+     "investor": "dave.near-postmoney-8624.testnet",
+     "amount": "5000000000",
+     "refunded": true
+    },
+    {
+     "investor": "erin.near-postmoney-8624.testnet",
+     "amount": "3000000000",
+     "refunded": true
     }
    ]
   }
@@ -664,6 +695,37 @@
     "ben.near-postmoney-8624.testnet": "Approve"
    },
    "submission_time": "1794574018875557115"
+  },
+  {
+   "id": 9,
+   "proposer": "ada.near-postmoney-8624.testnet",
+   "description": "Open a second bridge round: $40m post-money cap, $500k minimum, closing in 150 seconds",
+   "kind": {
+    "FunctionCall": {
+     "receiver_id": "acme.near-postmoney-8624.testnet",
+     "actions": [
+      {
+       "method_name": "open_round",
+       "args": "eyJ0ZXJtcyI6eyJuYW1lIjoiQnJpZGdlIElJICgkNDBtIGNhcCkiLCJzYWZlIjp7ImNhcCI6IjQwMDAwMDAwMDAwMDAwIiwiZGlzY291bnRfYnBzIjowLCJtZm4iOmZhbHNlLCJwcm9fcmF0YSI6ZmFsc2V9LCJtaW5fcmFpc2UiOiI1MDAwMDAwMDAwMDAiLCJtYXhfcmFpc2UiOiIxMDAwMDAwMDAwMDAwIiwiZGVhZGxpbmUiOiIxNzk0NTc4MDAxIn19",
+       "deposit": "0",
+       "gas": "30000000000000"
+      }
+     ]
+    }
+   },
+   "status": "Approved",
+   "vote_counts": {
+    "council": [
+     2,
+     0,
+     0
+    ]
+   },
+   "votes": {
+    "ada.near-postmoney-8624.testnet": "Approve",
+    "ben.near-postmoney-8624.testnet": "Approve"
+   },
+   "submission_time": "1794577856939435105"
   }
  ],
  "treasury_usdc": "1120000000000"

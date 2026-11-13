@@ -203,6 +203,7 @@ if (rs.length === 4) {
   rs = await view<any[]>("rounds");
 }
 if (rs.length === 5 && rs[4].raised === "0" && rs[4].status === "Open") {
+  if (BigInt(await view("storage_balance_of", { account_id: person("dave") })) === 0n) must("dave adds 0.01 NEAR storage balance on the cap table", await call(dave, COMPANY, "storage_deposit", {}, milli(10), 10n));
   must("dave pays $5,000 into Bridge II", await pay(dave, usd(5_000), { invest: 4 }));
   must("carol pays $3,000 into Bridge II for erin (the investment is erin's)", await call(carol, USDC, "ft_transfer_call", { receiver_id: COMPANY, amount: usd(3_000).toString(), msg: JSON.stringify({ invest: 4, for: person("erin") }) }, 1n, 100n));
 }
@@ -215,7 +216,22 @@ if (rs.length === 5 && rs[4].investments.some((i: any) => !i.refunded)) {
   }
   for (const inv of rs[4].investments.filter((i: any) => !i.refunded)) {
     const who = inv.investor.split(".")[0];
-    must(`the round missed its minimum: bob (anyone) refunds ${who}'s $${Number(inv.amount) / 1e6}, which goes to ${who}`, await call(bob, COMPANY, "refund", { round: 4, investor: inv.investor }, 0n, 60n));
+    const registered = !!(await chain.view(USDC, "storage_balance_of", { account_id: inv.investor }));
+    const demonstrated = run.steps.some((x: any) => x.expected_refusal && x.what.includes(`refunds ${who}, who never registered`));
+    if (!registered && demonstrated) {
+      must(`${who} registers with the test USDC`, await call(erin, USDC, "storage_deposit", {}, 1_250_000_000_000_000_000_000n, 10n));
+      must(`bob refunds ${who} again: the $${Number(inv.amount) / 1e6} goes to ${who}`, await call(bob, COMPANY, "refund", { round: 4, investor: inv.investor }, 0n, 60n));
+      continue;
+    }
+    const r = await call(bob, COMPANY, "refund", { round: 4, investor: inv.investor }, 0n, 60n);
+    if (registered) must(`the round missed its minimum: bob (anyone) refunds ${who}'s $${Number(inv.amount) / 1e6}, which goes to ${who}`, r);
+    else {
+      // erin never registered with the token, so the transfer fails: the contract must roll the refund back.
+      const after = (await view<any[]>("rounds"))[4].investments.find((i: any) => i.investor === inv.investor);
+      step(`bob refunds ${who}, who never registered with the token: the transfer fails and the contract rolls the refund back (still ${who}'s, still in escrow)`, { ...r, ok: !r.ok && after && !after.refunded }, { expected_refusal: true, refusal: r.reason });
+      must(`${who} registers with the test USDC`, await call(erin, USDC, "storage_deposit", {}, 1_250_000_000_000_000_000_000n, 10n));
+      must(`bob refunds ${who} again: the $${Number(inv.amount) / 1e6} goes to ${who}`, await call(bob, COMPANY, "refund", { round: 4, investor: inv.investor }, 0n, 60n));
+    }
   }
 }
 

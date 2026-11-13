@@ -11,8 +11,9 @@ waterfall and secondary sales (with the company's right of first refusal) are vi
 >   (**a TEST TOKEN with no value**), and the board, a Sputnik DAO made by the `sputnik-v2.testnet` factory,
 >   [`acme-board-8624.sputnik-v2.testnet`](https://testnet.nearblocks.io/address/acme-board-8624.sputnik-v2.testnet)
 >   (council of 3, two votes pass). On it, YC's worked example company raised $1m in two SAFE rounds, the board ran
->   its Series A through 9 proposals, and the cap table came out equal to YC's published table on every line
->   ([links below](#on-testnet)). `npm run verify` re-reads all of it (20 checks).
+>   its Series A through 10 proposals, and the cap table came out equal to YC's published table on every line
+>   ([links below](#on-testnet)); a later round missed its minimum and was refunded, one refund failing and rolling
+>   back on chain. `npm run verify` re-reads all of it (23 checks).
 > - **Runs locally, free:** `npm run judge`: the kill test on the contract's wasm (2,500 random rounds + 2,500 random
 >   exits, every number equal to an independent reference), the attack suite (54 checks), the company's whole life
 >   with a real Sputnik DAO on a sandbox (44 checks), mutation checks (19/19 caught with `npm run mutants`), the web
@@ -159,7 +160,7 @@ shares instead of 588,235.
 | `npm run sandbox` | the company's whole life with a real Sputnik DAO as the board, YC's numbers on chain (44 checks, ~85 s) |
 | `npm run attacks` | 54 checks, each attack refused as stated |
 | `npm run mutants` | 19/19 broken contracts caught (about 8 minutes) |
-| `npm run verify` | the testnet deployment re-read: code = `res/*.wasm`, the DAO owns it, YC's Series A on chain, the stale proposal refused (20 checks) |
+| `npm run verify` | the testnet deployment re-read: code = `res/*.wasm`, the DAO owns it, YC's Series A on chain, the stale proposal refused, the refunds and the rolled-back one (23 checks) |
 | `npm run build:web`, then serve `web/dist/` | the page: Acme's cap table live from testnet, the next round modelled by the contract's own preview, the waterfall slider, the SAFE certificates |
 | `npm run quote` | keyless 1Click dry quotes: an investor on Base pays USDC, exactly $25,000 USDC lands on NEAR; and 1Click accepts delivering it into a round with the investor named |
 | `SEED=9 FRESH=3000 npm run property` | 3,000 more random rounds from another seed |
@@ -191,6 +192,12 @@ The story (every transaction is in [`deploy/testnet-run.json`](deploy/testnet-ru
 | ben offers 50,000 to carol; Proposal 5: the treasury buys them at $30,000 (right of first refusal) | [vote](https://testnet.nearblocks.io/txns/8RLnjsp9CURoWctDE1ezWiDMduUcW7J1EbGMrfNhcAYA) |
 | Proposals 6-8: an MFN SAFE (bob, $50k), then a bridge round ($30m cap, 20% discount; alice $100k) | [MFN pay](https://testnet.nearblocks.io/txns/Ed3bisAhZkmA7ifpFcApyj5QSj58Z79WLUuDqi24XCtL), [bridge pay](https://testnet.nearblocks.io/txns/3JUicKBynjLCu4GseR3di4fmTqQwKXfJL99HMnHkmeA6) |
 | bob's MFN SAFE #3 adopts the bridge round's terms | [tx](https://testnet.nearblocks.io/txns/FzsMas1Yvfzj6cc1gatky1Ln7orvbEhj4jumwcakhanz) |
+| Proposal 9: a second bridge round with a $500k minimum and 150 seconds to fill | [vote](https://testnet.nearblocks.io/txns/6VhsariDfbbbAp1eyUhpuNHjrFqJScupLqxajK6LUftu) |
+| dave pays $5,000 before adding a storage balance: refused, the token hands it back | [tx](https://testnet.nearblocks.io/txns/AF6n7HmMdfqP9no3EPShJ4Ne9XJZGt1ayVezZF6GoRNj) |
+| dave pays $5,000; carol pays $3,000 **for erin** (the investment is erin's) | [dave](https://testnet.nearblocks.io/txns/Ak1W28bpk3UoHu2GdfzsF2ovdPT7UGrZNuwLi4o3RQAY), [carol for erin](https://testnet.nearblocks.io/txns/7keqbgqp23S3ZcdFcm3jzvnkJLKmzUWMYDvo6GiVZrdL) |
+| The round misses its minimum; bob (anyone) refunds dave | [tx](https://testnet.nearblocks.io/txns/7MnqCKhLviU8WBVi81YXdDY1rxyPEG45u1VvooWLN4XY) |
+| bob refunds erin, who never registered with the token: **the transfer fails and the cap table rolls the refund back** | [tx](https://testnet.nearblocks.io/txns/2svaE7YeFcH2RbnwMhHWp2wM2jf6fCm9Zo5TAvvEB3Yx) |
+| erin registers; bob refunds her again; the $3,000 reaches her | [tx](https://testnet.nearblocks.io/txns/AYTifY7VkMahFUYbbzfunEzPB7q35K6NeEXvzEWKTRyK) |
 
 NEAR spent: DAO 4.85, cap table 3.82 (code and state), token 0.44, seven people 0.35, gas; 0.59 left on the funder.
 

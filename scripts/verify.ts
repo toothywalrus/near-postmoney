@@ -76,6 +76,17 @@ const supply = await v("nft_total_supply");
 const t3 = await v("nft_token", { token_id: "3" });
 c.check(supply === "2" && JSON.parse(t3.metadata.extra).amended_from_round === 2 && JSON.parse(t3.metadata.extra).cap === "30000000000000", "2 SAFE certificates outstanding; #3 is the MFN SAFE amended to the bridge round's $30m cap and 20% discount", t3.metadata.title);
 
+c.section("Refunds, paying for someone, and a rollback");
+const r4 = (await v<any[]>("rounds"))[4];
+c.check(!!r4 && r4.status === "Refunding" && r4.raised === "0" && r4.investments.every((i: any) => i.refunded), "Bridge II missed its minimum: both investors refunded by a third party, nothing left in it", r4?.status);
+c.check(!!r4 && r4.investments.some((i: any) => i.investor === `erin.${FUNDER}` && i.amount === "3000000000"), "carol paid $3,000 for erin, and the investment (and the refund) were erin's");
+const rb = run.steps.find((x: any) => x.expected_refusal && /never registered/.test(x.what));
+if (rb) {
+  const st = await rpc("EXPERIMENTAL_tx_status", { tx_hash: rb.tx, sender_account_id: `bob.${FUNDER}`, wait_until: "FINAL" }).catch(() => null);
+  const outcomes = JSON.stringify(st?.receipts_outcome?.map((o: any) => [o.outcome.status, o.outcome.logs]) ?? "");
+  c.check(outcomes.includes("receiver is not registered") && outcomes.includes("refund_failed"), "the refund to an account the token didn't know failed, and the cap table's callback rolled it back in the same transaction", rb.tx);
+}
+
 c.section("The deployed wasm on YC's examples (free views)");
 for (const ex of yc.conversions) {
   const r = await v("simulate_conversion", { cap: yc.cap, safes: yc.safes.map(({ who, ...s }: any) => s), terms: ex.terms });
