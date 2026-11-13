@@ -49,7 +49,7 @@ rows.push({ name: "res/*.wasm match res/SHA256SUMS", status: bad.length ? "FAIL"
 
 const suites: Promise<void>[] = [
   run("Reference: YC's worked examples + invariants on 2,000 random rounds and 2,000 exits", TSX, ["scripts/reference-check.ts"], (o) => `${(o.match(/^✓/gm) ?? []).length} ✓, ${(o.match(/^✗/gm) ?? []).length} ✗; ${last(o, /invariants hold/).replace(/^✓ /, "").slice(0, 70)}…`),
-  run("Kill test on the wasm: contract vs reference, every number (sandbox)", TSX, ["scripts/property.ts"], (o) => last(o, /wasm = reference on \d+ random priced/).replace(/^✓ /, "").replace(/ \(0 disagree.*$/, "") + `; ${last(o, /property checks/)}`),
+  run("Kill test on the wasm: contract vs reference, every number (sandbox)", TSX, ["scripts/property.ts"], (o) => last(o, /wasm = reference on \d+ random priced/).replace(/^✓ /, "").replace(/ \(0 disagree.*$/, "").trim() + `; ${last(o, /property checks/).replace(/ \(\d+ s\)$/, "")}`),
   run("Attack suite: each attack meets its stated refusal (sandbox)", TSX, ["scripts/attacks.ts"], (o) => last(o, /attacks refused/)),
   run("The company's whole life, board = real Sputnik DAO (sandbox)", TSX, ["scripts/sandbox.ts"], (o) => last(o, /sandbox checks/)),
   run(FULL ? "Mutation checks: all 19" : "Mutation checks: 3 of 19 (npm run mutants runs all)", TSX, ["scripts/mutants.ts", ...(FULL ? [] : ["--quick"])], (o) => last(o, /mutants caught/), { PARALLEL: FULL ? "4" : "3" }),

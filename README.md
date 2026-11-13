@@ -36,10 +36,20 @@ git clone https://github.com/toothywalrus/near-postmoney && cd near-postmoney
 npm ci && npm run judge        # Node 22; no keys, no wallet, no Rust. First run downloads the NEAR sandbox node.
 ```
 
-It ends in a pass/fail table:
+It ends in a pass/fail table. Measured on 2026-11-13 on an 8-core Linux laptop shared with other builds (suites run side by side):
 
 ```
-JUDGE_TABLE_PLACEHOLDER
+Check                                                                                Result  Time   Detail
+res/*.wasm match res/SHA256SUMS                                                      PASS    0s     postmoney.wasm, test_usdc.wasm, sputnikdao2-ZGdM2TFd.wasm
+Web page builds (web/dist)                                                           PASS    4s     built: serve web/dist with any static server
+Testnet deployment re-read from chain state                                          PASS    4s     20/20 chain checks passed
+Reference: YC's worked examples + invariants on 2,000 random rounds and 2,000 exits  PASS    7s     7 ✓, 0 ✗; invariants hold on 1883 converted random cases …
+Kill test on the wasm: contract vs reference, every number (sandbox)                 PASS    36s    wasm = reference on 2500 random priced rounds: 2349 converted identically (6869 SAFEs, 893 capped ones at the round's price), 151 refused by both; 6/6 property checks passed
+The company's whole life, board = real Sputnik DAO (sandbox)                         PASS    101s   44/44 sandbox checks passed
+Mutation checks: 3 of 19 (npm run mutants runs all)                                  PASS    104s   3/3 mutants caught
+Attack suite: each attack meets its stated refusal (sandbox)                         PASS    137s   54/54 attacks refused as expected
+
+All 8 checks passed in 137 s.
 ```
 
 [`JUDGES.md`](JUDGES.md) maps every claim to its code, its test and its command.
@@ -60,7 +70,7 @@ before closing. The money meanwhile sits in a bank account, the SAFE is a PDF, a
   the maximum comes back in the same transaction. Closing sends the money to the treasury and mints each investor a
   NEP-171 SAFE certificate (terms in its metadata, an SVG certificate drawn by the contract). A round that misses its
   minimum by the deadline, or that the board cancels, refunds: anyone may trigger anyone's refund, and the money only
-  goes back to the investor who paid; a funded round the board leaves unclosed for as long again as it ran becomes
+  goes to the investor it belongs to; a funded round the board leaves unclosed for as long again as it ran becomes
   refundable too, so the worst case is a refund, never a lock-up. Someone else may pay for an investor
   (`{"invest": round, "for": "investor.near"}`, how 1Click delivers from another chain; decision 0007). Every payout
   has a callback that rolls back a failed transfer.
@@ -136,7 +146,7 @@ MUTANTS_PLACEHOLDER
 
 | Do | See |
 |---|---|
-| `npm ci && npm run judge` | the table above, about MINUTES_PLACEHOLDER |
+| `npm ci && npm run judge` | the table above, about 2.5 minutes (plus `npm ci`) |
 | `npm run reference` | the reference reproduces YC's four questions; invariants on 2,000 random rounds and exits (5 s, no network) |
 | `npm run property` | the contract's wasm reproduces YC's examples and agrees with the reference on 2,500 + 2,500 random cases |
 | `npm run sandbox` | the company's whole life with a real Sputnik DAO as the board, YC's numbers on chain (44 checks, ~85 s) |
@@ -175,6 +185,11 @@ The story (every transaction is in [`deploy/testnet-run.json`](deploy/testnet-ru
 | bob's MFN SAFE #3 adopts the bridge round's terms | [tx](https://testnet.nearblocks.io/txns/FzsMas1Yvfzj6cc1gatky1Ln7orvbEhj4jumwcakhanz) |
 
 NEAR spent: DAO 4.85, cap table 3.82 (code and state), token 0.44, seven people 0.35, gas; 0.59 left on the funder.
+
+The cap table's code was replaced twice while the deployer's key exists, each time with the state carried over (same
+layout): before the story ([tx](https://testnet.nearblocks.io/txns/2GMyrE4v3gVVAT4UsJ9Kv1eswLF8ru2QD6HEoA6kq4A8), MFN
+may adopt any later round) and after it ([tx](https://testnet.nearblocks.io/txns/Ft59rq51BKbTN1P8JSYVb43wSivaNdgHioNxtiLbxzfx),
+decision 0007). `npm run verify` checks that the code running now is `res/postmoney.wasm`.
 
 ## What NEAR does here, concretely
 

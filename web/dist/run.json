@@ -62,16 +62,6 @@
     },
     {
       "what": "  ada votes for proposal 0",
-      "ok": false,
-      "reason": "Not enough balance for ada.near-postmoney-8624.testnet (balance: 48154017262328200000000, cost: 50924847126897000000000)"
-    },
-    {
-      "what": "  ada votes for proposal 0",
-      "ok": false,
-      "reason": "Not enough balance for ada.near-postmoney-8624.testnet (balance: 48154017262328200000000, cost: 50924847126897000000000)"
-    },
-    {
-      "what": "  ada votes for proposal 0",
       "ok": true,
       "tx": "6uyZmKgewLVu7sPT5XRtUQfZqYT75DnZPmr9Gf9K2rzJ"
     },
@@ -129,7 +119,7 @@
       "status": "Approved"
     },
     {
-      "what": "proposal: Execute the Series A as previewed (stale hash ca9aaaa6c44e…)",
+      "what": "proposal: Execute the Series A as previewed (stale hash ca9aaaa6c44e\u2026)",
       "ok": true,
       "tx": "6m8ZyhtH59NwHjPb1pYJ5vCZD1cARsrZLPeeArvW664q",
       "proposal": 3
@@ -145,7 +135,8 @@
       "reason": "the cap table or the terms changed since the preview: preview again and vote on the new hash",
       "proposal": 3,
       "status": "Approved",
-      "refusal": "the cap table or the terms changed since the preview: preview again and vote on the new hash"
+      "refusal": "the cap table or the terms changed since the preview: preview again and vote on the new hash",
+      "tx": "BBqZzkREYxvDbYmG4tDEShp81SpVLnhUhLTuYQwgL8dS"
     },
     {
       "what": "proposal: Execute the Series A: $5m at $15m pre-money, price $1.1144, hash 416d871c7aa8958d8f50b196d3afa4773ba64f133526f0624d7db560ddc4ab1a",
@@ -361,7 +352,8 @@
   "staleDone": {
     "proposal": 3,
     "status": "Approved",
-    "refusal": "the cap table or the terms changed since the preview: preview again and vote on the new hash"
+    "refusal": "the cap table or the terms changed since the preview: preview again and vote on the new hash",
+    "tx": "BBqZzkREYxvDbYmG4tDEShp81SpVLnhUhLTuYQwgL8dS"
   },
   "final": {
     "company_capitalization": "18036607",
