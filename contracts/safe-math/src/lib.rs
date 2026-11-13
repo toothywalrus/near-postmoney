@@ -87,7 +87,7 @@ pub enum Basis {
     Price,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct SafeShares {
     #[serde(with = "dec")]
     pub shares: u128,
@@ -98,7 +98,7 @@ pub struct SafeShares {
 }
 
 /// The whole result of a priced round, every number a whole number of shares or micro-dollars.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Conversion {
     /// Price per share, micro-dollars, rounded to the round's decimals.
     #[serde(with = "dec")]
@@ -436,6 +436,19 @@ pub fn convert(cap: &Cap, safes: &[Safe], t: &Priced) -> Result<Conversion, &'st
     })
 }
 
+/// Before any priced round, with every capped SAFE at its cap: the Company Capitalization (rounded down) and each
+/// SAFE's shares (uncapped SAFEs: 0, since they have no Safe Price). This is the "post-SAFE" cap table YC tabulates.
+pub fn at_caps(c: u128, safes: &[Safe]) -> Result<(u128, Vec<u128>), &'static str> {
+    let alpha = safes.iter().filter_map(|s| s.cap.map(|cp| Q::frac(s.purchase, cp))).fold(Q::int(0), |a, r| a.add(&r));
+    let om = Q::int(1).sub(&alpha);
+    if !om.is_pos() {
+        return Err("at their caps the SAFEs would own 100% or more of the company");
+    }
+    let k = to_u128(&Q::int(c).div(&om).floor())?;
+    let shares = safes.iter().map(|s| s.cap.map_or(Ok(0), |cp| mul_div(k, s.purchase, cp))).collect::<Result<_, _>>()?;
+    Ok((k, shares))
+}
+
 // ---------- the exit waterfall ----------
 
 /// One claimant in a sale: a SAFE (cash-out or conversion) or a series of 1x non-participating preferred.
@@ -459,7 +472,7 @@ pub enum Claim {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct ClaimPayout {
     pub converts: bool,
     /// Shares it holds as common in the sale (a converting SAFE's Conversion Amount in shares).
@@ -469,7 +482,7 @@ pub struct ClaimPayout {
     pub payout: u128,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Waterfall {
     #[serde(with = "dec")]
     pub exit: u128,
