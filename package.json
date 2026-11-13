@@ -25,7 +25,8 @@
     "web": "npm run dev -w web",
     "build:web": "npm run build -w web",
     "shots": "tsx scripts/shots.ts",
-    "snapshot": "tsx scripts/snapshot.ts"
+    "snapshot": "tsx scripts/snapshot.ts",
+    "scale": "tsx scripts/scale.ts"
   },
   "workspaces": [
     "web"

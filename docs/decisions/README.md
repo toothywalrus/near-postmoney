@@ -15,3 +15,4 @@ a later decision that supersedes one gets a new record, and the old entry is str
 | [0005](0005-state-and-storage.md) | All state in one record, every byte paid from the caller's storage balance; caps of 40 investors a round and 60 SAFEs |
 | [0006](0006-one-faucet-draw.md) | The testnet demo fits one faucet draw: a macro-free test token, gas lent per call, keys kept until `npm run lock` |
 | [0007](0007-refunds-if-abandoned-and-paying-for-someone.md) | Refunds open when a board leaves a funded round unclosed as long again as it ran; anyone may pay for an investor (`"for"`) |
+| [0008](0008-linear-arithmetic-and-a-terms-cap.md) | The exact arithmetic runs over common denominators in linear scans; at most 8 different SAFE terms outstanding (60 SAFEs convert in 38.5 TGas) |

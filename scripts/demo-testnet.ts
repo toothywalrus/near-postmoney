@@ -193,6 +193,32 @@ const certs = await view<any[]>("nft_tokens_for_owner", { account_id: person("bo
 const mfn = certs.find((t) => JSON.parse(t.metadata.extra).mfn);
 if (mfn) must(`bob's MFN SAFE #${mfn.token_id} adopts the bridge round's terms ($30m cap, 20% discount)`, await call(bob, COMPANY, "adopt_mfn_terms", { token_id: mfn.token_id, round: 3 }));
 
+// 5. A round that misses its minimum: one investor pays for another (as 1Click would from another chain), the
+//    deadline passes, and anyone refunds each of them (decision 0007).
+rs = await view<any[]>("rounds");
+if (rs.length === 4) {
+  if (BigInt(await view("storage_balance_of", { account_id: person("erin") })) === 0n) must("erin adds 0.01 NEAR storage balance on the cap table", await call(erin, COMPANY, "storage_deposit", {}, milli(10), 10n));
+  const soon = String(Math.floor(Date.now() / 1000) + 150);
+  await propose("Open a second bridge round: $40m post-money cap, $500k minimum, closing in 150 seconds", [{ method: "open_round", args: { terms: { name: "Bridge II ($40m cap)", safe: { cap: usd(40_000_000).toString(), discount_bps: 0, mfn: false, pro_rata: false }, min_raise: usd(500_000).toString(), max_raise: usd(1_000_000).toString(), deadline: soon } }, tgas: 30n }]);
+  rs = await view<any[]>("rounds");
+}
+if (rs.length === 5 && rs[4].raised === "0" && rs[4].status === "Open") {
+  must("dave pays $5,000 into Bridge II", await pay(dave, usd(5_000), { invest: 4 }));
+  must("carol pays $3,000 into Bridge II for erin (the investment is erin's)", await call(carol, USDC, "ft_transfer_call", { receiver_id: COMPANY, amount: usd(3_000).toString(), msg: JSON.stringify({ invest: 4, for: person("erin") }) }, 1n, 100n));
+}
+rs = await view<any[]>("rounds");
+if (rs.length === 5 && rs[4].investments.some((i: any) => !i.refunded)) {
+  const wait = Number(rs[4].terms.deadline) - Math.floor(Date.now() / 1000) + 5;
+  if (wait > 0) {
+    console.log(`waiting ${wait} s for Bridge II's deadline`);
+    await sleep(wait * 1000);
+  }
+  for (const inv of rs[4].investments.filter((i: any) => !i.refunded)) {
+    const who = inv.investor.split(".")[0];
+    must(`the round missed its minimum: bob (anyone) refunds ${who}'s $${Number(inv.amount) / 1e6}, which goes to ${who}`, await call(bob, COMPANY, "refund", { round: 4, investor: inv.investor }, 0n, 60n));
+  }
+}
+
 const t = await view("cap_table");
 run.final = { company_capitalization: t.company_capitalization, positions: t.positions.length, certificates: t.certificates.map((c: any) => c.token_id) };
 save();

@@ -44,15 +44,15 @@ export const MUTANTS: Mutant[] = [
   { id: "settle-no-rollback", what: "a failed payout to the seller leaves the buyer with the shares", file: PM, suite: "attacks",
     find: `self.move_shares(&o.buyer, &o.seller, o.class, o.shares.0, true);`, replace: `` },
   { id: "ceil-company-cap", what: "Company Capitalization rounded up instead of down", file: SM, suite: "property",
-    find: `to_u128(&Q::int(num).div(&Q::int(1).sub(&alpha)).floor())`, replace: `to_u128(&(Q::int(num).div(&Q::int(1).sub(&alpha)).floor() + BigInt::one()))` },
+    find: `to_u128(&((big(num) * &den.d) / (&den.d - na)));`, replace: `to_u128(&((big(num) * &den.d) / (&den.d - na) + BigInt::one()));` },
   { id: "no-pool-shuffle", what: "the pool increase left out of the pre-money (the spreadsheet error)", file: SM, suite: "property",
     find: `Pool::Increase(inc) => with_increase(inc),`, replace: `Pool::Increase(_inc) => with_increase(0),` },
   { id: "pre-money-safe", what: "SAFEs left out of their own Company Capitalization (pre-money SAFE math)", file: SM, suite: "property",
-    find: `            } else if let Some(cp) = s.cap {\n                alpha = alpha.add(&Q::frac(s.purchase, cp));\n            }\n        }\n        to_u128(`, replace: `            } else if let Some(_cp) = s.cap {\n            }\n        }\n        to_u128(` },
+    find: `Some(_) => na += den.at_cap(s),`, replace: `Some(_) => {}` },
   { id: "always-cap", what: "a capped SAFE never takes the round's price, even when that gives more shares", file: SM, suite: "property",
     find: `if at_price[i] > mul_div(k, safes[i].purchase, cp)? {`, replace: `if false && at_price[i] > mul_div(k, safes[i].purchase, cp)? {` },
   { id: "wrong-way-conversion", what: "preferred converts when converting pays less", file: SM, suite: "property",
-    find: `let wants = split(exit, common, claims, &with)?.pay[i] > split(exit, common, claims, &without)?.pay[i];`, replace: `let wants = split(exit, common, claims, &with)?.pay[i] < split(exit, common, claims, &without)?.pay[i];` },
+    find: `let wants = with > without;`, replace: `let wants = with < without;` },
 ];
 const QUICK = ["no-hash-check", "refund-to-caller", "no-pool-shuffle"];
 

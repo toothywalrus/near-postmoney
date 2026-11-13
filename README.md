@@ -102,6 +102,10 @@ before closing. The money meanwhile sits in a bank account, the SAFE is a PDF, a
   a threshold scan and a closed form). On **2,500 random priced rounds** (up to 6 SAFEs, caps, discounts, uncapped and
   MFN SAFEs, pool targets and fixed increases, 0 to 6 price decimals) and **2,500 random exits**, the contract's wasm
   and the reference agree on every number (`npm run property`, 26 s). The comparison found one bug, in the reference.
+- **It fits in a block.** The first version could not convert what the contract let a company hold: with caps
+  that share no factor, 20 SAFEs ran out of NEAR's 300 TGas. Exact arithmetic over common denominators in linear
+  scans fixed it without changing a single result: the board's execution converting 60 SAFEs from 8 rounds now burns
+  38.5 TGas (`npm run scale`, [decision 0008](docs/decisions/0008-linear-arithmetic-and-a-terms-cap.md)).
 - **The rounding rule** is stated in [decision 0002](docs/decisions/0002-conversion-rounding.md): solve exactly, round
   the price once half-up to the round's decimals, round shares down (the Company Capitalization too, as YC does),
   round a pool target up to the least whole number of shares that meets it, and give the last-listed new investor the
@@ -159,6 +163,7 @@ shares instead of 588,235.
 | `npm run build:web`, then serve `web/dist/` | the page: Acme's cap table live from testnet, the next round modelled by the contract's own preview, the waterfall slider, the SAFE certificates |
 | `npm run quote` | keyless 1Click dry quotes: an investor on Base pays USDC, exactly $25,000 USDC lands on NEAR; and 1Click accepts delivering it into a round with the investor named |
 | `SEED=9 FRESH=3000 npm run property` | 3,000 more random rounds from another seed |
+| `npm run scale` | the contract at its caps: 60 SAFEs from 8 rounds converted by the board in 38.5 TGas, the waterfall on them in 12 TGas, a ninth set of terms refused (~3 minutes) |
 
 ## On testnet
 
@@ -242,7 +247,10 @@ decision 0007). `npm run verify` checks that the code running now is `res/postmo
 - **Not modelled:** pre-money SAFEs (YC's Example 2), convertible notes, individual option grants and vesting
   (options are an aggregate the board grants from the pool), pro rata purchases as an enforced right (the preview
   reports each holder's pro rata entitlement; the board lists the purchase as new money).
-- **Scale:** the whole cap table is one record; 40 investors a round, 60 outstanding SAFEs. Fine for a startup.
+- **Scale:** the whole cap table is one record; 40 investors a round, 60 outstanding SAFEs over at most 8 different
+  (cap, discount) pairs. At those caps, with worst-case caps, the board's execution converting 60 SAFEs burns 38.5
+  TGas of 300 (`npm run scale`, [decision 0008](docs/decisions/0008-linear-arithmetic-and-a-terms-cap.md)). Fine for
+  a startup.
 - **Price decimals:** 0 to 6. Rounding rules and their bounds: [decision 0002](docs/decisions/0002-conversion-rounding.md).
 - **The contracts aren't locked** until the owner runs `npm run lock`.
 

@@ -187,7 +187,45 @@ fn mul_div(a: u128, b: u128, c: u128) -> Result<u128, &'static str> {
     if c == 0 {
         return Err("division by zero");
     }
-    to_u128(&((big(a) * big(b)) / big(c)))
+    match a.checked_mul(b) {
+        Some(x) => Ok(x / c),
+        None => to_u128(&((big(a) * big(b)) / big(c))),
+    }
+}
+
+fn lcm(a: &BigInt, b: &BigInt) -> BigInt {
+    a / a.gcd(b) * b
+}
+
+/// Common denominators for the SAFEs' two sums, so the hot loops add and subtract whole numbers (no gcd per step):
+/// sum of purchase/cap = `na / d`, and sum of purchase/Discount Rate = `nb / e`.
+struct Den {
+    /// lcm of the caps.
+    d: BigInt,
+    /// lcm of (BPS - discount), times nothing else: purchase x BPS / (BPS - discount) = purchase x BPS x (e / (BPS - discount)) / e.
+    e: BigInt,
+}
+
+impl Den {
+    fn of(safes: &[Safe]) -> Den {
+        let mut d = BigInt::one();
+        let mut e = BigInt::one();
+        for s in safes {
+            if let Some(cp) = s.cap {
+                d = lcm(&d, &big(cp));
+            }
+            e = lcm(&e, &big(BPS - s.discount_bps as u128));
+        }
+        Den { d, e }
+    }
+    /// purchase / cap, over `d`.
+    fn at_cap(&self, s: &Safe) -> BigInt {
+        big(s.purchase) * (&self.d / big(s.cap.unwrap_or(1)))
+    }
+    /// purchase x BPS / (BPS - discount), over `e`.
+    fn at_price(&self, s: &Safe) -> BigInt {
+        big(s.purchase) * big(BPS) * (&self.e / big(BPS - s.discount_bps as u128))
+    }
 }
 
 fn add(a: u128, b: u128) -> Result<u128, &'static str> {
@@ -243,8 +281,9 @@ fn validate(cap: &Cap, safes: &[Safe], t: &Priced) -> Result<u128, &'static str>
         }
     }
     // At their caps the SAFEs must own less than all of the company.
-    let alpha = safes.iter().filter_map(|s| s.cap.map(|c| Q::frac(s.purchase, c))).fold(Q::int(0), |a, r| a.add(&r));
-    if alpha.cmp(&Q::int(1)) != Ordering::Less {
+    let den = Den::of(safes);
+    let na: BigInt = safes.iter().filter(|s| s.cap.is_some()).map(|s| den.at_cap(s)).sum();
+    if na >= den.d {
         return Err("at their caps the SAFEs would own 100% or more of the company");
     }
     let c = sum([cap.outstanding, cap.options, cap.pool])?;
@@ -256,58 +295,65 @@ fn validate(cap: &Cap, safes: &[Safe], t: &Priced) -> Result<u128, &'static str>
 
 /// The exact price per share (micro-dollars, rational), with no rounding anywhere: the unique solution of
 /// the three circular definitions, found by trying each threshold in the SAFEs' value order.
+///
+/// The SAFEs at the round's price are always the capped SAFEs of highest value (cap / Discount Rate), plus the uncapped
+/// ones; SAFEs of equal value are always on the same side. So each threshold moves one group of equal value from "at
+/// its cap" to "at the price": the two sums are updated in whole numbers over common denominators, and only the groups
+/// either side of the threshold need checking (decision 0002). In whole numbers, with alpha = na/d and beta = nb/e:
+///   fixed increase T:  price = ((d - na) pre e - nb d) / (e (C d + (d - na) T))
+///   pool target q:     price = ((d - na)(pre BPS - q post) e - nb d BPS) / (BPS e (C d - (d - na) U0))
 fn exact_price(c: u128, cap: &Cap, safes: &[Safe], order: &[usize], t: &Priced) -> Result<Q, &'static str> {
-    let uncapped = safes.iter().filter(|s| s.cap.is_none()).count();
-    let pre = Q::int(t.pre_money);
-    let post = Q::int(add(t.pre_money, sum(t.new_money.iter().copied())?)?);
-    let cq = Q::int(c);
-    let u0 = Q::int(cap.pool);
-    for j in uncapped..=safes.len() {
-        let in_b = |i: usize| order[..j].contains(&i);
-        let mut alpha = Q::int(0);
-        let mut beta = Q::int(0);
-        for (i, s) in safes.iter().enumerate() {
-            if in_b(i) {
-                beta = beta.add(&Q::frac(s.purchase * BPS, BPS - s.discount_bps as u128));
-            } else if let Some(cp) = s.cap {
-                alpha = alpha.add(&Q::frac(s.purchase, cp));
-            }
+    let den = Den::of(safes);
+    let (d, e) = (&den.d, &den.e);
+    let pre = big(t.pre_money);
+    let post = big(add(t.pre_money, sum(t.new_money.iter().copied())?)?);
+    let cq = big(c);
+    let u0 = big(cap.pool);
+    let bps = big(BPS);
+    // Capped SAFEs in value order, grouped by equal value.
+    let same_value = |a: &Safe, b: &Safe| big(a.cap.unwrap_or(0)) * big(BPS - b.discount_bps as u128) == big(b.cap.unwrap_or(0)) * big(BPS - a.discount_bps as u128);
+    let mut groups: Vec<Vec<usize>> = vec![];
+    for &i in order.iter().filter(|&&i| safes[i].cap.is_some()) {
+        match groups.last_mut() {
+            Some(g) if same_value(&safes[g[0]], &safes[i]) => g.push(i),
+            _ => groups.push(vec![i]),
         }
-        let om = Q::int(1).sub(&alpha);
-        let with_increase = |inc: u128| om.mul(&pre).sub(&beta).div(&cq.add(&om.mul(&Q::int(inc))));
-        let p = match t.pool {
+    }
+    let mut na: BigInt = safes.iter().filter(|s| s.cap.is_some()).map(|s| den.at_cap(s)).sum();
+    let mut nb: BigInt = safes.iter().filter(|s| s.cap.is_none()).map(|s| den.at_price(s)).sum();
+    // cap / Discount Rate > price x Company Capitalization, i.e. cap BPS p.d e (d - na) > (BPS - disc)(p.n C e + nb p.d) d.
+    let above = |s: &Safe, pn: &BigInt, pd: &BigInt, na: &BigInt, nb: &BigInt| {
+        big(s.cap.unwrap_or(0)) * &bps * pd * e * (d - na) > big(BPS - s.discount_bps as u128) * (pn * &cq * e + nb * pd) * d
+    };
+    for g in 0..=groups.len() {
+        let om = d - &na; // d x (1 - alpha), positive
+        let with_increase = |inc: u128| ((&om * &pre * e - &nb * d), (e * (&cq * d + &om * big(inc))));
+        let (pn, pd) = match t.pool {
             Pool::Increase(inc) => with_increase(inc),
             Pool::TargetBps(qb) => {
-                let q = Q::frac(qb as u128, BPS);
-                let num = om.mul(&pre.sub(&q.mul(&post))).sub(&beta);
-                let den = cq.sub(&om.mul(&u0));
-                let p = num.div(&den);
-                // The pool is already big enough: no increase.
-                if p.is_pos() && q.mul(&post).div(&p).cmp(&u0) == Ordering::Less {
+                let qb = big(qb as u128);
+                let pn = &om * (&pre * &bps - &qb * &post) * e - &nb * d * &bps;
+                let pd = &bps * e * (&cq * d - &om * &u0);
+                // The pool is already big enough (q post / price < U0): no increase.
+                if pn.is_positive() && &qb * &post * &pd < &u0 * &bps * &pn {
                     with_increase(0)
                 } else {
-                    p
+                    (pn, pd)
                 }
             }
         };
-        if !p.is_pos() {
-            continue;
-        }
-        let k = cq.add(&beta.div(&p)).div(&om);
-        let pk = p.mul(&k);
-        let consistent = safes.iter().enumerate().all(|(i, s)| match s.cap {
-            None => true,
-            Some(cp) => {
-                let v = Q::frac(cp * BPS, BPS - s.discount_bps as u128);
-                if in_b(i) {
-                    v.cmp(&pk) == Ordering::Greater
-                } else {
-                    v.cmp(&pk) != Ordering::Greater
-                }
+        if pn.is_positive() && pd.is_positive() {
+            let last_in = g == 0 || above(&safes[groups[g - 1][0]], &pn, &pd, &na, &nb);
+            let first_out = g == groups.len() || !above(&safes[groups[g][0]], &pn, &pd, &na, &nb);
+            if last_in && first_out {
+                return Ok(Q::new(pn, pd));
             }
-        });
-        if consistent {
-            return Ok(p);
+        }
+        if g < groups.len() {
+            for &i in &groups[g] {
+                na -= den.at_cap(&safes[i]);
+                nb += den.at_price(&safes[i]);
+            }
         }
     }
     Err("the pre-money valuation is too low to convert these SAFEs")
@@ -325,28 +371,29 @@ fn shares_at(c: u128, safes: &[Safe], order: &[usize], p: u128) -> Result<At, &'
         .iter()
         .map(|s| mul_div(s.purchase, BPS, p.checked_mul(BPS - s.discount_bps as u128).ok_or("overflow")?))
         .collect::<Result<_, _>>()?;
+    let den = Den::of(safes);
     let mut in_b: Vec<bool> = safes.iter().map(|s| s.cap.is_none()).collect();
-    // Company Capitalization = (existing + shares of SAFEs at the price) / (1 - sum of purchase/cap over SAFEs at their caps), rounded down.
-    let company_cap = |in_b: &[bool]| -> Result<u128, &'static str> {
-        let mut num = c;
-        let mut alpha = Q::int(0);
-        for (i, s) in safes.iter().enumerate() {
-            if in_b[i] {
-                num = add(num, at_price[i])?;
-            } else if let Some(cp) = s.cap {
-                alpha = alpha.add(&Q::frac(s.purchase, cp));
-            }
-        }
-        to_u128(&Q::int(num).div(&Q::int(1).sub(&alpha)).floor())
-    };
-    for &i in order {
-        let Some(cp) = safes[i].cap else { continue };
-        let k = company_cap(&in_b)?;
-        if at_price[i] > mul_div(k, safes[i].purchase, cp)? {
-            in_b[i] = true;
+    // Company Capitalization = (existing + shares of SAFEs at the price) / (1 - sum of purchase/cap over SAFEs at
+    // their caps), rounded down: floor(num x d / (d - na)). Both sums change only when a SAFE moves to the price.
+    let mut num = c;
+    let mut na = BigInt::zero();
+    for (i, s) in safes.iter().enumerate() {
+        match s.cap {
+            Some(_) => na += den.at_cap(s),
+            None => num = add(num, at_price[i])?,
         }
     }
-    let k = company_cap(&in_b)?;
+    let company_cap = |num: u128, na: &BigInt| to_u128(&((big(num) * &den.d) / (&den.d - na)));
+    let mut k = company_cap(num, &na)?;
+    for &i in order {
+        let Some(cp) = safes[i].cap else { continue };
+        if at_price[i] > mul_div(k, safes[i].purchase, cp)? {
+            in_b[i] = true;
+            num = add(num, at_price[i])?;
+            na -= den.at_cap(&safes[i]);
+            k = company_cap(num, &na)?;
+        }
+    }
     let mut out = Vec::with_capacity(safes.len());
     for (i, s) in safes.iter().enumerate() {
         let at_cap = match s.cap {
@@ -439,12 +486,12 @@ pub fn convert(cap: &Cap, safes: &[Safe], t: &Priced) -> Result<Conversion, &'st
 /// Before any priced round, with every capped SAFE at its cap: the Company Capitalization (rounded down) and each
 /// SAFE's shares (uncapped SAFEs: 0, since they have no Safe Price). This is the "post-SAFE" cap table YC tabulates.
 pub fn at_caps(c: u128, safes: &[Safe]) -> Result<(u128, Vec<u128>), &'static str> {
-    let alpha = safes.iter().filter_map(|s| s.cap.map(|cp| Q::frac(s.purchase, cp))).fold(Q::int(0), |a, r| a.add(&r));
-    let om = Q::int(1).sub(&alpha);
-    if !om.is_pos() {
+    let den = Den::of(safes);
+    let na: BigInt = safes.iter().filter(|s| s.cap.is_some()).map(|s| den.at_cap(s)).sum();
+    if na >= den.d {
         return Err("at their caps the SAFEs would own 100% or more of the company");
     }
-    let k = to_u128(&Q::int(c).div(&om).floor())?;
+    let k = to_u128(&((big(c) * &den.d) / (&den.d - na)))?;
     let shares = safes.iter().map(|s| s.cap.map_or(Ok(0), |cp| mul_div(k, s.purchase, cp))).collect::<Result<_, _>>()?;
     Ok((k, shares))
 }
@@ -507,25 +554,47 @@ struct Split {
     total_shares: u128,
 }
 
-fn split(exit: u128, common: u128, claims: &[Claim], conv: &[bool]) -> Result<Split, &'static str> {
+/// The capped SAFE claims' purchase/cap over a common denominator `d`, computed once per waterfall.
+struct Terms {
+    d: BigInt,
+    at_cap: Vec<BigInt>,
+}
+
+fn terms_of(claims: &[Claim]) -> Terms {
+    let mut d = BigInt::one();
+    for cl in claims {
+        if let Claim::Safe { cap: Some(cp), .. } = cl {
+            d = lcm(&d, &big(*cp));
+        }
+    }
+    let at_cap = claims
+        .iter()
+        .map(|cl| match cl {
+            Claim::Safe { purchase, cap: Some(cp) } => big(*purchase) * (&d / big(*cp)),
+            _ => BigInt::zero(),
+        })
+        .collect();
+    Terms { d, at_cap }
+}
+
+fn split(exit: u128, common: u128, claims: &[Claim], terms: &Terms, conv: &[bool]) -> Result<Split, &'static str> {
     // Liquidity Capitalization = (common + converting preferred) / (1 - sum of purchase/cap over converting SAFEs), rounded down.
     let mut base = common;
-    let mut alpha = Q::int(0);
+    let mut na = BigInt::zero();
     let mut prefs = 0u128;
     for (i, cl) in claims.iter().enumerate() {
         match (cl, conv[i]) {
             (Claim::Preferred { shares, .. }, true) => base = add(base, *shares)?,
-            (Claim::Safe { purchase, cap: Some(cp) }, true) => alpha = alpha.add(&Q::frac(*purchase, *cp)),
+            (Claim::Safe { cap: Some(_), .. }, true) => na += &terms.at_cap[i],
             (Claim::Safe { purchase, .. }, false) => prefs = add(prefs, *purchase)?,
             (Claim::Preferred { preference, .. }, false) => prefs = add(prefs, *preference)?,
             (Claim::Safe { cap: None, .. }, true) => return Err("an uncapped SAFE takes its cash-out amount"),
         }
     }
-    let one = Q::int(1);
-    if alpha.cmp(&one) != Ordering::Less {
+    if na >= terms.d {
         return Err("at their caps the SAFEs would own 100% or more of the company");
     }
-    let lk = to_u128(&Q::int(base).div(&one.sub(&alpha)).floor())?;
+    let lk = to_u128(&((big(base) * &terms.d) / (&terms.d - na)))?;
     let shares: Vec<u128> = claims
         .iter()
         .enumerate()
@@ -571,25 +640,29 @@ pub fn waterfall(exit: u128, common: u128, claims: &[Claim]) -> Result<Waterfall
     if common == 0 && claims.is_empty() {
         return Err("nobody holds anything");
     }
+    let terms = terms_of(claims);
     let mut conv = vec![false; claims.len()];
+    let mut cur = split(exit, common, claims, &terms, &conv)?;
     for _ in 0..(4 * claims.len() + 4) {
         let mut changed = false;
         for i in 0..claims.len() {
             if !can_convert(&claims[i]) {
                 continue;
             }
-            let mut with = conv.clone();
-            with[i] = true;
-            let mut without = conv.clone();
-            without[i] = false;
-            let wants = split(exit, common, claims, &with)?.pay[i] > split(exit, common, claims, &without)?.pay[i];
+            // The current choice's payout is `cur`'s; only the other choice needs a new split.
+            let mut flipped = conv.clone();
+            flipped[i] = !conv[i];
+            let alt = split(exit, common, claims, &terms, &flipped)?;
+            let (with, without) = if conv[i] { (cur.pay[i], alt.pay[i]) } else { (alt.pay[i], cur.pay[i]) };
+            let wants = with > without;
             if wants != conv[i] {
-                conv[i] = wants;
+                conv = flipped;
+                cur = alt;
                 changed = true;
             }
         }
         if !changed {
-            let s = split(exit, common, claims, &conv)?;
+            let s = cur;
             let paid = add(sum(s.pay.iter().copied())?, s.common_pay)?;
             return Ok(Waterfall {
                 exit,

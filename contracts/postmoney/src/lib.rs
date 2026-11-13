@@ -35,6 +35,9 @@ const POSITION_BYTES: u64 = 200;
 const MIN_STORAGE_DEPOSIT: NearToken = NearToken::from_millinear(5);
 pub const MAX_INVESTORS_PER_ROUND: usize = 40;
 pub const MAX_OUTSTANDING_SAFES: usize = 60;
+/// Different (cap, discount) pairs among outstanding SAFEs and open rounds. The exact arithmetic's numbers grow with
+/// the number of different caps, so this bounds the conversion's gas (`npm run scale`; decision 0005).
+pub const MAX_DISTINCT_TERMS: usize = 8;
 
 #[near(serializers = [borsh])]
 #[derive(Clone, Debug, PartialEq, near_sdk::serde::Serialize)]
@@ -406,6 +409,7 @@ impl Postmoney {
         if let Some(cap) = terms.safe.cap {
             require!(cap.0 > terms.max_raise.0, "the cap must be above the max raise");
         }
+        require!(self.distinct_terms(Some(&terms.safe), None) <= MAX_DISTINCT_TERMS, "the company has as many different SAFE terms outstanding as one conversion handles");
         let id = self.rounds.len() as u32;
         self.rounds.push(Round { id, terms: terms.clone(), token: self.usdc.clone(), opened: U64(now_secs()), raised: U128(0), status: RoundStatus::Open, investments: vec![] });
         let owner = self.owner.clone();
@@ -585,6 +589,9 @@ impl Postmoney {
         require!(c.terms.mfn, "this SAFE has no MFN provision");
         // A later round: opened after this SAFE's own (its SAFEs are issued after this one). Not one that was called off.
         require!(later.id > c.round && later.status != RoundStatus::Refunding, "MFN applies to SAFEs the company issued later");
+        let token = c.token_id.clone();
+        require!(self.distinct_terms(Some(&later.terms.safe), Some(&token)) <= MAX_DISTINCT_TERMS, "the company has as many different SAFE terms outstanding as one conversion handles");
+        let c = self.certs.iter_mut().find(|c| c.token_id == token).unwrap();
         c.terms = later.terms.safe.clone();
         c.amended_from_round = Some(c.round);
         c.round = later.id;
@@ -754,6 +761,16 @@ impl Postmoney {
 impl Postmoney {
     fn board(&self) {
         require!(env::predecessor_account_id() == self.owner, "only the board (the company's DAO) can do this");
+    }
+
+    /// Different (cap, discount) pairs among outstanding SAFEs (less `skip`) and open rounds, plus `extra`.
+    fn distinct_terms(&self, extra: Option<&SafeTerms>, skip: Option<&TokenId>) -> usize {
+        let mut v: Vec<(Option<u128>, u32)> = self.certs.iter().filter(|c| Some(&c.token_id) != skip).map(|c| (c.terms.cap.map(|x| x.0), c.terms.discount_bps)).collect();
+        v.extend(self.rounds.iter().filter(|r| r.status == RoundStatus::Open || r.status == RoundStatus::Closing).map(|r| (r.terms.safe.cap.map(|x| x.0), r.terms.safe.discount_bps)));
+        v.extend(extra.map(|t| (t.cap.map(|x| x.0), t.discount_bps)));
+        v.sort();
+        v.dedup();
+        v.len()
     }
 
     fn size(&self) -> u64 {
