@@ -68,7 +68,7 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
 
     say("Closing");
     ok(await w.boardCall("open_round", round("Big minimum", { deadline: far, min: usd(1_000_000), max: usd(2_000_000) })), "open round 2");
-    ok(await w.pay(carol, usd(5_000), { invest: 2 }), "carol invests in round 2");
+    ok(await w.pay(carol, usd(25_000), { invest: 2 }), "carol invests $25,000 in round 2 (its least first ticket: $1m / 40)");
     c.refused(await w.boardCall("close_round", { round: 2 }), "has not met its minimum", "close a round below its minimum");
     ok(await w.boardCall("close_round", { round: 0 }), "close round 0");
     c.refused(await w.boardCall("close_round", { round: 0 }), "the round is not open", "close a round twice");
@@ -82,19 +82,19 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     const mb = await bal(mallory.accountId);
     const cb = await bal(carol.accountId);
     ok(await call(mallory, A, "refund", { round: 2, investor: carol.accountId }), "mallory triggers carol's refund");
-    c.check((await bal(carol.accountId)) - cb === usd(5_000) && (await bal(mallory.accountId)) === mb, "claim another's refund: the money goes to carol, who paid; mallory gets nothing");
+    c.check((await bal(carol.accountId)) - cb === usd(25_000) && (await bal(mallory.accountId)) === mb, "claim another's refund: the money goes to carol, who paid; mallory gets nothing");
     c.refused(await call(carol, A, "refund", { round: 2, investor: carol.accountId }), "nothing to refund", "double refund");
     c.refused(await call(mallory, A, "refund", { round: 2, investor: mallory.accountId }), "nothing to refund", "refund to someone who never invested");
     const short = await deadline(4);
     ok(await w.boardCall("open_round", round("Short", { deadline: short, min: usd(50_000) })), "open round 3");
-    ok(await w.pay(dave, usd(1_000), { invest: 3 }), "dave invests");
+    ok(await w.pay(dave, usd(2_000), { invest: 3 }), "dave invests $2,000 (the least first ticket is $1,250)");
     await w.sleep(6_000);
     const late = await w.pay(dave, usd(1_000), { invest: 3 });
     c.check((late.reason ?? "").includes("deadline has passed"), "invest after the deadline: refused (\"the round's deadline has passed\")");
     c.refused(await w.boardCall("close_round", { round: 3 }), "has not met its minimum", "close an expired round below its minimum");
     const db = await bal(dave.accountId);
     ok(await call(mallory, A, "refund", { round: 3, investor: dave.accountId }), "anyone refunds an expired round");
-    c.check((await bal(dave.accountId)) - db === usd(1_000), "a round that missed its minimum by the deadline: anyone triggers the refund, dave is paid back");
+    c.check((await bal(dave.accountId)) - db === usd(2_000), "a round that missed its minimum by the deadline: anyone triggers the refund, dave is paid back");
 
     ok(await w.boardCall("open_round", round("Forgotten", { deadline: await deadline(10), min: usd(1_000), max: usd(10_000) })), "open round 4");
     ok(await w.pay(dave, usd(2_000), { invest: 4 }), "dave invests; the minimum is met");
@@ -172,6 +172,24 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     ok(await call(mallory, A, "settle_offer", { offer: o.value }), "settle");
     c.check((await bal(ada.accountId)) - ab === usd(500_000), "after the window, the trade settles: ada is paid");
     c.refused(await call(mallory, A, "settle_offer", { offer: o.value }), "already settled", "settle twice");
+
+    say("Investor places");
+    // A round has 40 investor places (MAX_INVESTORS_PER_ROUND). One-unit investments, each for a made-up account with
+    // a storage balance, must not be able to take them all and shut honest investors out (decision 0009).
+    const placesOpen = await w.boardCall("open_round", round("Places", { deadline: far, min: usd(40_000), max: usd(400_000) }));
+    ok(placesOpen, "open a round with a $40,000 minimum: the least first ticket is $1,000");
+    const pr = placesOpen.value as number;
+    const seats = Array.from({ length: 40 }, (_, i) => `place${i}.${mallory.accountId}`);
+    await mallory.signAndSendTransaction({ receiverId: A, actions: seats.map((s) => actions.functionCall("storage_deposit", { account_id: s }, 5n * TGAS, milli(6))), waitUntil: "FINAL", throwOnFailure: false } as any);
+    for (let i = 0; i < seats.length; i += 8) {
+      await mallory.signAndSendTransaction({ receiverId: U, actions: seats.slice(i, i + 8).map((s) => actions.functionCall("ft_transfer_call", { receiver_id: A, amount: "1", msg: JSON.stringify({ invest: pr, for: s }) }, 35n * TGAS, 1n)), waitUntil: "FINAL", throwOnFailure: false } as any);
+    }
+    const taken = (await w.view<any[]>("rounds"))[pr].investments.length;
+    const honest = await w.pay(dave, usd(5_000), { invest: pr });
+    c.check(taken === 0 && honest.ok, "40 one-unit investments for 40 made-up accounts: each refused (under the round's least first ticket), so an honest $5,000 still gets a place", `${taken} places taken by one-unit investments; honest: ${honest.ok ? "accepted" : honest.reason}`);
+    const under1k = await w.pay(carol, usd(1_000) - 1n, { invest: pr });
+    const at = await w.pay(carol, usd(1_000), { invest: pr });
+    c.check((under1k.reason ?? "").includes("least first ticket") && at.ok, "a first ticket one unit under the round's minimum / 40: refused, refunded; at it: accepted", under1k.reason);
 
     say("Rollback when a payout fails");
     // A second company whose treasury, and one founder, never registered with the token: their transfers fail.

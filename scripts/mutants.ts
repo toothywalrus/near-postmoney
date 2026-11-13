@@ -21,6 +21,8 @@ export const MUTANTS: Mutant[] = [
     find: `require!(token == self.usdc, "unknown token: this company only takes its USDC");`, replace: `let _ = &token;` },
   { id: "no-max", what: "a round keeps money over its max", file: PM, suite: "attacks",
     find: `let take = amount.min(room);`, replace: `let take = amount;` },
+  { id: "no-least-ticket", what: "one-unit first investments can take all of a round's 40 places", file: PM, suite: "attacks",
+    find: `require!(take >= least, `, replace: `require!(take >= least || true, ` },
   { id: "free-storage", what: "storage isn't charged to the investor", file: PM, suite: "attacks",
     find: `self.set_storage(who, have - cost);`, replace: `self.set_storage(who, have);` },
   { id: "double-refund", what: "a refund doesn't mark itself paid", file: PM, suite: "attacks",

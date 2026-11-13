@@ -498,6 +498,12 @@ impl Postmoney {
         require!(room > 0, "the round is full");
         let take = amount.min(room);
         let existing = r.investments.iter().position(|i| i.investor == investor && !i.refunded);
+        if existing.is_none() {
+            // A new investor takes one of the round's places, so a first ticket is at least the round's minimum over
+            // its places (or all the room left): the places can't run out before the minimum is met (decision 0009).
+            let least = r.terms.min_raise.0.div_ceil(MAX_INVESTORS_PER_ROUND as u128).min(room);
+            require!(take >= least, "under the round's least first ticket (its minimum raise over its 40 investor places)");
+        }
         match existing {
             Some(i) => r.investments[i].amount = U128(add(r.investments[i].amount.0, take)),
             None => {

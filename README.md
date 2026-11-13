@@ -15,8 +15,8 @@ waterfall and secondary sales (with the company's right of first refusal) are vi
 >   ([links below](#on-testnet)); a later round missed its minimum and was refunded, one refund failing and rolling
 >   back on chain. `npm run verify` re-reads all of it (23 checks).
 > - **Runs locally, free:** `npm run judge`: the kill test on the contract's wasm (2,500 random rounds + 2,500 random
->   exits, every number equal to an independent reference), the attack suite (55 checks), the company's whole life
->   with a real Sputnik DAO on a sandbox (44 checks), mutation checks (20/20 caught with `npm run mutants`), the web
+>   exits, every number equal to an independent reference), the attack suite (57 checks), the company's whole life
+>   with a real Sputnik DAO on a sandbox (44 checks), mutation checks (21/21 caught with `npm run mutants`), the web
 >   page build.
 > - **Mainnet, waits for the owner:** nothing is deployed there. "Invest from any chain" is priced with keyless
 >   1Click dry quotes (`npm run quote`: $25,000 of USDC on NEAR from USDC on Base for $25,257.63, about 35 s; 1Click
@@ -69,13 +69,14 @@ before closing. The money meanwhile sits in a bank account, the SAFE is a PDF, a
 
 - **SAFE rounds.** The board opens a round: post-money valuation cap, discount, MFN, pro rata, minimum and maximum,
   deadline. Investors `ft_transfer_call` USDC with `{"invest": round}`. The money waits in the contract; anything over
-  the maximum comes back in the same transaction. Closing sends the money to the treasury and mints each investor a
-  NEP-171 SAFE certificate (terms in its metadata, an SVG certificate drawn by the contract). A round that misses its
-  minimum by the deadline, or that the board cancels, refunds: anyone may trigger anyone's refund, and the money only
-  goes to the investor it belongs to; a funded round the board leaves unclosed for as long again as it ran becomes
-  refundable too, so the worst case is a refund, never a lock-up. Someone else may pay for an investor
-  (`{"invest": round, "for": "investor.near"}`, how 1Click delivers from another chain; decision 0007). Every payout
-  has a callback that rolls back a failed transfer.
+  the maximum comes back in the same transaction. A first ticket is at least the round's minimum over its 40 investor
+  places, so one-unit investments can't fill a round and shut investors out (decision 0009). Closing sends the money
+  to the treasury and mints each investor a NEP-171 SAFE certificate (terms in its metadata, an SVG certificate drawn
+  by the contract). A round that misses its minimum by the deadline, or that the board cancels, refunds: anyone may
+  trigger anyone's refund, and the money only goes to the investor it belongs to; a funded round the board leaves
+  unclosed for as long again as it ran becomes refundable too, so the worst case is a refund, never a lock-up. Someone
+  else may pay for an investor (`{"invest": round, "for": "investor.near"}`, how 1Click delivers from another chain;
+  decision 0007). Every payout has a callback that rolls back a failed transfer.
 - **MFN.** An MFN holder can adopt the terms of any SAFE round the company opened and closed later (YC's clause:
   securities the company *issues* later; `adopt_mfn_terms`); the certificate's terms change.
 - **The priced round.** `preview_priced_round` returns the exact result (price per share, each SAFE's shares and
@@ -131,26 +132,27 @@ terms under the old hash, a SAFE that changed hands after the preview, and a rep
 
 ## Money safety
 
-`npm run attacks` runs 55 checks on the real wasm, each attack with the refusal it must meet: invest after close, in
+`npm run attacks` runs 57 checks on the real wasm, each attack with the refusal it must meet: invest after close, in
 an unknown token, over the max, without storage, after the deadline; double refund; claim another's refund (the money
-still goes to who paid); close twice or below the minimum; convert twice; move a SAFE without the board's consent or to
-another receiver than consented; front-run the company's right of first refusal; exercise it as a stranger or after
-the window; sell the same shares twice; refund a funded round before the board could close it; pay for someone with
-no storage balance; and two payouts that fail and roll back (to the treasury at close, to a seller
-at settlement). It found a real bug: a failed payout to a secondary seller couldn't roll back, because the rollback
-tried to unlock shares the buyer held unlocked; the buyer's shares now stay locked until the seller is paid.
+still goes to who paid); close twice or below the minimum; convert twice; move a SAFE without the board's consent or
+to another receiver than consented; front-run the company's right of first refusal; exercise it as a stranger or after
+the window; sell the same shares twice; refund a funded round before the board could close it; pay for someone with no
+storage balance; take all 40 of a round's places with one-unit investments; and two payouts that fail and roll back
+(to the treasury at close, to a seller at settlement). It found a real bug: a failed payout to a secondary seller
+couldn't roll back, because the rollback tried to unlock shares the buyer held unlocked; the buyer's shares now stay
+locked until the seller is paid.
 
-`npm run mutants` builds nothing (the 20 mutants are checked in, `res/mutants/`): it runs the attack suite or the
-property test against each deliberately broken contract and expects a failure: no board check, any token, no max, free
-storage, double refund, refund to the caller, refunds before the board could close, MFN adopting an unissued
-round's terms, close twice, no hash check, consent for any receiver, no ROFR window,
-anyone may exercise ROFR, no rollback at close or at settlement, Company Capitalization rounded up, the pool increase
-left out of the pre-money (the classic spreadsheet error), SAFEs left out of their own Company Capitalization
-(pre-money SAFE math), capped SAFEs never taking the round's price, and preferred converting the wrong way.
-Measured: **20/20 caught** in 319 s (four at a time). Two of them show why the arithmetic is the product: leaving
-the pool increase out of the pre-money (the classic spreadsheet error) prices YC's Series A at $1.2750 instead of
-$1.1144, and leaving the SAFEs out of their own Company Capitalization (pre-money SAFE math) gives Investor A 500,000
-shares instead of 588,235.
+
+`npm run mutants` builds nothing (the 21 mutants are checked in, `res/mutants/`): it runs the attack suite or the
+property test against each deliberately broken contract and expects a failure: no board check, any token, no max, no
+least first ticket, free storage, double refund, refund to the caller, refunds before the board could close, MFN
+adopting an unissued round's terms, close twice, no hash check, consent for any receiver, no ROFR window, anyone may
+exercise ROFR, no rollback at close or at settlement, Company Capitalization rounded up, the pool increase left out of
+the pre-money (the classic spreadsheet error), SAFEs left out of their own Company Capitalization (pre-money SAFE
+math), capped SAFEs never taking the round's price, and preferred converting the wrong way. Measured: **21/21 caught**
+in 457 s (four at a time). Two of them show why the arithmetic is the product: leaving the pool increase out of the
+pre-money (the classic spreadsheet error) prices YC's Series A at $1.2750 instead of $1.1144, and leaving the SAFEs
+out of their own Company Capitalization (pre-money SAFE math) gives Investor A 500,000 shares instead of 588,235.
 
 ## Do X, see Y (from a fresh clone)
 
@@ -160,8 +162,8 @@ shares instead of 588,235.
 | `npm run reference` | the reference reproduces YC's four questions; invariants on 2,000 random rounds and exits (5 s, no network) |
 | `npm run property` | the contract's wasm reproduces YC's examples and agrees with the reference on 2,500 + 2,500 random cases |
 | `npm run sandbox` | the company's whole life with a real Sputnik DAO as the board, YC's numbers on chain (44 checks, ~85 s) |
-| `npm run attacks` | 55 checks, each attack refused as stated |
-| `npm run mutants` | 20/20 broken contracts caught (about 6 minutes) |
+| `npm run attacks` | 57 checks, each attack refused as stated |
+| `npm run mutants` | 21/21 broken contracts caught (about 8 minutes) |
 | `npm run verify` | the testnet deployment re-read: code = `res/*.wasm`, the DAO owns it, YC's Series A on chain, the stale proposal refused, the refunds and the rolled-back one (23 checks) |
 | `npm run build:web`, then serve `web/dist/` | the page: Acme's cap table live from testnet, the next round modelled by the contract's own preview, the waterfall slider, the SAFE certificates |
 | `npm run quote` | keyless 1Click dry quotes: an investor on Base pays USDC, exactly $25,000 USDC lands on NEAR; and 1Click accepts delivering it into a round with the investor named |
@@ -252,6 +254,9 @@ MFN may adopt a later round), then [decision 0007](https://testnet.nearblocks.io
 
 - **A prototype on testnet, not legal advice or a securities offering.** A SAFE on chain is a record of an agreement;
   the agreement itself (the YC form, signatures, securities law) lives off chain.
+- **A SAFE round is open to any NEAR account that pays** (and to anyone a payer names with `"for"`). A real round is
+  offered to investors the company chose, often accredited ones; that would need a per-round allowlist and a new
+  state layout. Until then the least first ticket (decision 0009) keeps one-unit investments from filling a round.
 - **The priced round's new money is recorded, not escrowed** (Series A money usually arrives by wire). SAFE money and
   secondary-sale money do move on chain.
 - **Waterfall:** 1x non-participating only; no participation, multiples or seniority between series; options as

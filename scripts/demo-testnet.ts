@@ -199,7 +199,9 @@ rs = await view<any[]>("rounds");
 if (rs.length === 4) {
   if (BigInt(await view("storage_balance_of", { account_id: person("erin") })) === 0n) must("erin adds 0.01 NEAR storage balance on the cap table", await call(erin, COMPANY, "storage_deposit", {}, milli(10), 10n));
   const soon = String(Math.floor(Date.now() / 1000) + 150);
-  await propose("Open a second bridge round: $40m post-money cap, $500k minimum, closing in 150 seconds", [{ method: "open_round", args: { terms: { name: "Bridge II ($40m cap)", safe: { cap: usd(40_000_000).toString(), discount_bps: 0, mfn: false, pro_rata: false }, min_raise: usd(500_000).toString(), max_raise: usd(1_000_000).toString(), deadline: soon } }, tgas: 30n }]);
+  // The recorded testnet run (deploy/testnet-run.json) opened this round with a $500k minimum, before first tickets
+  // had a floor (decision 0009). A fresh run uses $120k: its least first ticket is $3,000, so both payments below fit.
+  await propose("Open a second bridge round: $40m post-money cap, $120k minimum, closing in 150 seconds", [{ method: "open_round", args: { terms: { name: "Bridge II ($40m cap)", safe: { cap: usd(40_000_000).toString(), discount_bps: 0, mfn: false, pro_rata: false }, min_raise: usd(120_000).toString(), max_raise: usd(1_000_000).toString(), deadline: soon } }, tgas: 30n }]);
   rs = await view<any[]>("rounds");
 }
 if (rs.length === 5 && rs[4].raised === "0" && rs[4].status === "Open") {
