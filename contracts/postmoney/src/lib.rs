@@ -329,6 +329,9 @@ pub struct Founder {
 #[derive(Default)]
 struct Msg {
     invest: Option<u32>,
+    /// With `invest`: whose SAFE it is, when someone else pays (NEAR Intents' 1Click delivering from another chain).
+    #[serde(rename = "for")]
+    beneficiary: Option<AccountId>,
     buy: Option<u32>,
     rofr: Option<u32>,
 }
@@ -475,7 +478,7 @@ impl Postmoney {
         require!(token == self.usdc, "unknown token: this company only takes its USDC");
         let m: Msg = serde_json::from_str(&msg).unwrap_or_else(|_| env::panic_str("msg must be {\"invest\": round}, {\"buy\": offer} or {\"rofr\": offer}"));
         match (m.invest, m.buy, m.rofr) {
-            (Some(r), None, None) => self.invest(sender_id, amount.0, r),
+            (Some(r), None, None) => self.invest(m.beneficiary.unwrap_or(sender_id), amount.0, r),
             (None, Some(o), None) => self.fund_offer(sender_id, amount.0, o),
             (None, None, Some(o)) => self.match_offer(sender_id, amount.0, o),
             _ => env::panic_str("msg must name exactly one of invest, buy, rofr"),
@@ -512,14 +515,19 @@ impl Postmoney {
         U128(amount - take)
     }
 
-    /// Refund one investor of a round that was cancelled, or that missed its minimum by its deadline. Anyone may
-    /// call it; the money goes only to the investor who paid.
+    /// Refund one investor of a round that was cancelled, that missed its minimum by its deadline, or that the board
+    /// left unclosed for as long again as it ran. Anyone may call it; the money goes only to the investor.
     pub fn refund(&mut self, round: u32, investor: AccountId) -> Promise {
         let r = self.round_mut(round);
-        if r.status == RoundStatus::Open && now_secs() >= r.terms.deadline.0 && r.raised.0 < r.terms.min_raise.0 {
+        // Refunds open when the round missed its minimum by the deadline, or when the board let it sit unclosed for as
+        // long again as it ran: investors' money can't be held hostage by a board that never closes.
+        let now = now_secs();
+        let (deadline, opened) = (r.terms.deadline.0, r.opened.0);
+        let abandoned = now >= deadline.saturating_add(deadline.saturating_sub(opened));
+        if r.status == RoundStatus::Open && now >= deadline && (r.raised.0 < r.terms.min_raise.0 || abandoned) {
             r.status = RoundStatus::Refunding;
         }
-        require!(r.status == RoundStatus::Refunding, "refunds open only when a round is cancelled or misses its minimum by the deadline");
+        require!(r.status == RoundStatus::Refunding, "refunds open only when a round is cancelled, misses its minimum by the deadline, or sits unclosed as long again as it ran");
         let i = r.investments.iter().position(|i| i.investor == investor && !i.refunded).unwrap_or_else(|| env::panic_str("nothing to refund to this investor"));
         r.investments[i].refunded = true;
         let amount = r.investments[i].amount.0;

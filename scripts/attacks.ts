@@ -3,7 +3,7 @@
 // scripts/mutants.ts runs the same suite on deliberately broken builds and expects each one to be caught.
 import { pathToFileURL } from "node:url";
 import { actions } from "near-api-js";
-import { call, Checks, milli, NEAR, TGAS, usd, type Result } from "./lib/near.ts";
+import { call, Checks, milli, NEAR, StopOnFail, TGAS, usd, type Result } from "./lib/near.ts";
 import { finish, postmoneyWasm, startWorld, wasm } from "./lib/world.ts";
 
 export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c: Checks; secs: number }> {
@@ -54,6 +54,14 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     const b2 = await bal(nost.accountId);
     const ns = await w.pay(nost, usd(1000), { invest: 1 });
     c.check((await bal(nost.accountId)) === b2 && (ns.reason ?? "").includes("storage"), "invest without a storage balance: refused (\"storage: … needs … more storage balance\"), refunded", ns.logs.find((l) => l.includes("storage"))?.slice(0, 90));
+    const bobB = await bal(bob.accountId);
+    const aliceB = await bal(alice.accountId);
+    ok(await w.pay(alice, usd(5_000), { invest: 1, for: bob.accountId }), "alice pays for bob");
+    const inv1 = (await w.view<any[]>("rounds"))[1].investments;
+    c.check(inv1.some((i: any) => i.investor === bob.accountId && i.amount === usd(5_000).toString()) && (await bal(bob.accountId)) === bobB && aliceB - (await bal(alice.accountId)) === usd(5_000),
+      "someone else pays (as NEAR Intents' 1Click would, from another chain): the investment, and later the SAFE, are bob's");
+    const nsFor = await w.pay(alice, usd(1_000), { invest: 1, for: nost.accountId });
+    c.check((nsFor.reason ?? "").includes("storage") && (await bal(alice.accountId)) === aliceB - usd(5_000), "paying for someone with no storage balance: refused, refunded to the payer");
     const badmsg = await w.pay(bob, usd(1000), { nonsense: 1 } as any);
     c.check((badmsg.reason ?? "").includes("exactly one") || (badmsg.reason ?? "").includes("msg must"), "a payment with a msg naming nothing: refused, refunded");
     c.refused(await call(mallory, A, "ft_on_transfer", { sender_id: mallory.accountId, amount: usd(1_000_000).toString(), msg: JSON.stringify({ invest: 1 }) }), "unknown token", "mallory calls ft_on_transfer herself to fake a deposit");
@@ -88,6 +96,18 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     ok(await call(mallory, A, "refund", { round: 3, investor: dave.accountId }), "anyone refunds an expired round");
     c.check((await bal(dave.accountId)) - db === usd(1_000), "a round that missed its minimum by the deadline: anyone triggers the refund, dave is paid back");
 
+    ok(await w.boardCall("open_round", round("Forgotten", { deadline: await deadline(10), min: usd(1_000), max: usd(10_000) })), "open round 4");
+    ok(await w.pay(dave, usd(2_000), { invest: 4 }), "dave invests; the minimum is met");
+    const r4 = (await w.view<any[]>("rounds"))[4];
+    const [opened4, deadline4] = [Number(r4.opened), Number(r4.terms.deadline)];
+    const until = async (t: number) => { while ((await w.secs()) < t) await w.sleep(700); };
+    await until(deadline4 + 1);
+    c.refused(await call(mallory, A, "refund", { round: 4, investor: dave.accountId }), "refunds open only when", "a round that met its minimum, just past its deadline: no refunds while the board may still close it");
+    await until(2 * deadline4 - opened4 + 1);
+    const db2 = await bal(dave.accountId);
+    ok(await call(mallory, A, "refund", { round: 4, investor: dave.accountId }), "refund the abandoned round");
+    c.check((await bal(dave.accountId)) - db2 === usd(2_000), "the board never closed it, for as long again as it ran: anyone can refund dave, and he is paid back");
+
     say("SAFE certificates");
     const tok = (await w.view("nft_tokens_for_owner", { account_id: alice.accountId }))[0];
     c.check(tok?.token_id === "1", "alice holds SAFE #1", tok?.metadata?.title);
@@ -100,16 +120,16 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     c.refused(await call(alice, A, "adopt_mfn_terms", { token_id: "1", round: 1 }), "no MFN provision", "a non-MFN SAFE adopts later terms");
 
     say("MFN");
-    ok(await w.boardCall("open_round", round("MFN", { deadline: far, cap: null, mfn: true })), "open round 4 (MFN, uncapped)");
-    ok(await w.pay(bob, usd(20_000), { invest: 4 }), "bob invests in the MFN round");
-    ok(await w.boardCall("close_round", { round: 4 }), "close round 4");
+    ok(await w.boardCall("open_round", round("MFN", { deadline: far, cap: null, mfn: true })), "open round 5 (MFN, uncapped)");
+    ok(await w.pay(bob, usd(20_000), { invest: 5 }), "bob invests in the MFN round");
+    ok(await w.boardCall("close_round", { round: 5 }), "close round 5");
     const mfn = (await w.view("nft_tokens_for_owner", { account_id: bob.accountId })).find((t: any) => JSON.parse(t.metadata.extra).mfn);
     c.refused(await call(bob, A, "adopt_mfn_terms", { token_id: mfn.token_id, round: 0 }), "issued later", "an MFN holder adopts an earlier round's terms");
     c.refused(await call(mallory, A, "adopt_mfn_terms", { token_id: mfn.token_id, round: 1 }), "only the holder", "a stranger amends bob's MFN SAFE");
-    ok(await w.boardCall("open_round", round("Later, better", { deadline: far, cap: usd(6_000_000).toString(), discount_bps: 1000 })), "open round 5 ($6m cap, 10% discount)");
-    const adopt = await call(bob, A, "adopt_mfn_terms", { token_id: mfn.token_id, round: 5 });
+    ok(await w.boardCall("open_round", round("Later, better", { deadline: far, cap: usd(6_000_000).toString(), discount_bps: 1000 })), "open round 6 ($6m cap, 10% discount)");
+    const adopt = await call(bob, A, "adopt_mfn_terms", { token_id: mfn.token_id, round: 6 });
     const amended = await w.view("nft_token", { token_id: mfn.token_id });
-    c.check(adopt.ok && JSON.parse(amended.metadata.extra).cap === usd(6_000_000).toString() && JSON.parse(amended.metadata.extra).amended_from_round === 4, "the MFN holder adopts a later round's terms: its certificate now reads $6m cap, 10% discount", amended.metadata.title);
+    c.check(adopt.ok && JSON.parse(amended.metadata.extra).cap === usd(6_000_000).toString() && JSON.parse(amended.metadata.extra).amended_from_round === 5, "the MFN holder adopts a later round's terms: its certificate now reads $6m cap, 10% discount", amended.metadata.title);
 
     say("The priced round");
     const terms = { name: "Series A", pre_money: usd(20_000_000).toString(), investors: [{ account: carol.accountId, cash: usd(5_000_000).toString() }], pool: { target_bps: 1000 }, price_decimals: 4 };
@@ -179,7 +199,7 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     const off = (await chain.view<any[]>(A2, "offers"))[0];
     c.check(off.status === "Funded" && t2.positions.length === 1 && t2.positions[0].shares === "1000000" && t2.positions[0].locked === "1000", "the payout to the seller fails: the shares go back to the seller (still locked), the offer is paid and can settle again", `${off.status}, ${JSON.stringify(t2.positions.map((x: any) => [x.holder.split(".")[0], x.shares, x.locked]))}`);
   } catch (e) {
-    c.check(false, "the suite ran to the end", String((e as Error)?.stack ?? e).slice(0, 300));
+    if (!(e instanceof StopOnFail)) c.check(false, "the suite ran to the end", String((e as Error)?.stack ?? e).slice(0, 300));
   }
   const secs = Math.round((Date.now() - t0) / 1000);
   await Promise.race([w.stop(), w.sleep(15_000)]);

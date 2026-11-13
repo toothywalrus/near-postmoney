@@ -335,7 +335,7 @@ function renderBoard() {
       const methods = p.kind.FunctionCall?.actions.map((a: any) => a.method_name).join(", ") ?? Object.keys(p.kind)[0];
       const txs = votesTx(p.id);
       const refused = stale && stale.proposal === p.id ? `<div class="refused">Passed its vote; the cap table refused to execute it: “${esc(stale.refusal)}”. Nothing converted.</div>` : "";
-      return `<li><span class="pid">#${p.id}</span><span>${esc(p.description)}<br><small class="num">${esc(methods)}</small></span><span class="st ${p.status}">${p.status}</span>${refused}${txs.length ? `<div class="links">${txs.map((t: string, i: number) => `<a href="${txUrl(t)}">${i === 0 ? "proposed" : `vote ${i}`}</a>`).join("")}</div>` : ""}</li>`;
+      return `<li><span class="pid">#${p.id}</span><span>${esc(p.description)}<br><small class="num">${esc(methods)}</small></span><span class="st ${p.status}">${p.status}</span>${refused}${txs.length ? `<div class="links">${txs.map((t: string, i: number) => `<a href="${txUrl(t)}">${i === 0 ? "proposed" : "the vote that ran it"}</a>`).join("")}</div>` : ""}</li>`;
     })
     .join("");
 }
@@ -390,6 +390,10 @@ async function main() {
   }
   setStatus();
   $("company").textContent = S.cap_table.company;
+  if (!live) {
+    document.querySelector("#model .note")!.textContent = "Testnet didn't answer, so this model runs in your browser on the recorded cap table, with the independent reference implementation (ref/reference.ts); on 2,500 random rounds it agrees with the contract on every number. Live, these numbers come from the contract's own preview_priced_round.";
+    document.querySelector("#exit .note")!.textContent = "Testnet didn't answer: this waterfall runs in your browser with the reference implementation on the recorded cap table. Live, it is the contract's waterfall view.";
+  }
   renderNow();
   renderCerts();
   renderSeriesA();

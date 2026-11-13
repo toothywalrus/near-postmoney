@@ -1,0 +1,37 @@
+# For judges: each claim, its code, its test, its command
+
+Everything below runs from a fresh clone with Node 22 (`npm ci` first). Nothing needs keys, a wallet or Rust; the
+sandbox suites download the NEAR sandbox node on first use. `npm run judge` runs the core of it in one go.
+
+| # | Claim | Code | Test | Command | Expect |
+|---|---|---|---|---|---|
+| 1 | The contract converts post-money SAFEs exactly as YC's guide does, to the share (Appendix II, Example 1, Q2 and Q5: both cap tables, every line) | `contracts/safe-math/src/lib.rs` `convert` | `scripts/property.ts` (the wasm), `contracts/safe-math/src/tests.rs` (Rust), `scripts/reference-check.ts` (the reference) | `npm run property` | `✓ wasm reproduces YC Q2 … to the share (price $1.1144, SAFEs 588235 / 1176470, new 3589375 / 448671 / 448673)` and Q5 |
+| 2 | The waterfall reproduces YC's Q3 ($10m sale: both SAFEs convert, 561,764 and 1,123,529 shares, Liquidity Capitalization 11,235,293) and Q4 ($3m: both cash out, $2m to common) | `safe_math::waterfall` | same | `npm run property` | `✓ wasm reproduces YC Q3 …`, `Q4 …` |
+| 3 | The contract's integer math equals an independent exact reference on random cases: every price, share count, basis, pool increase, payout | `ref/reference.ts` (BigInt fractions, brute force over assignments; shares no code with the contract) | `scripts/property.ts` | `npm run property` | `✓ wasm = reference on 2500 random priced rounds: … 0 disagree`; `✓ wasm = reference on 2500 random exits` |
+| 4 | Invariants hold: each SAFE gets the greater number of shares; capped SAFEs within one share of purchase/cap of the Company Capitalization; pool ≥ target and minimal; no share created or lost; the price is the exact solution rounded half-up | `scripts/reference-check.ts` `invariants` | same | `npm run reference` | `✓ invariants hold on 1883 converted random cases …`, `✓ no case has more than one consistent answer` |
+| 5 | The rounding rule is defined and its bounds tested | [decision 0002](docs/decisions/0002-conversion-rounding.md) | claims 3, 4 | | |
+| 6 | The board can't execute numbers it didn't preview: execution recomputes the preview's hash and refuses any other | `execute_priced_round` in `contracts/postmoney/src/lib.rs`, `preview` in `views.rs` | `scripts/attacks.ts` "The priced round"; `scripts/sandbox.ts` §3 with a Sputnik DAO | `npm run attacks`, `npm run sandbox` | `✓ a SAFE changed hands after the preview: the old hash is refused`, `✓ convert twice (replay …)`, `✓ the DAO executes the old preview's hash: Sputnik's call fails, nothing converts` |
+| 7 | …and on testnet: proposal 3 (stale hash) passed its vote and the cap table refused it in that transaction | deploy record `deploy/testnet-run.json` | `scripts/verify.ts` reads the transaction's receipts | `npm run verify` | `✓ proposal 3 (the stale preview's hash) passed its vote and the cap table refused it in that transaction` |
+| 8 | SAFE money is escrowed; over-max is returned in the same transaction; close pays the treasury and mints NEP-171 certificates; refunds go only to who paid | `invest`, `close_round`/`on_closed`, `refund`/`on_refunded` | `scripts/attacks.ts` "Investing", "Closing", "Refunds" | `npm run attacks` | `✓ invest over the max …`, `✓ claim another's refund: the money goes to carol, who paid; mallory gets nothing`, `✓ double refund` |
+| 9 | Every money exit rolls back on a failed transfer | `on_closed`, `on_refunded`, `on_settled`, `on_sent` | `scripts/attacks.ts` "Rollback when a payout fails" (a treasury and a seller unregistered with the token) | `npm run attacks` | `✓ the payout to the treasury fails: the round is open again …`, `✓ the payout to the seller fails: the shares go back …` |
+| 10 | SAFEs move only with the board's consent, to the consented receiver | `nft_transfer`, `consent_safe_transfer` | `scripts/attacks.ts` "SAFE certificates" | `npm run attacks` | `✓ move a SAFE with no board consent …`, `✓ consent for dave, transfer to mallory` |
+| 11 | Secondary sales: the company's right of first refusal can't be front-run or usurped | `offer_shares`, `fund_offer`, `match_offer`, `settle_offer` | `scripts/attacks.ts` "Secondary sales…"; `scripts/sandbox.ts` §4 (DAO exercises ROFR) | `npm run attacks` | `✓ front-run the company's right of first refusal …`, `✓ a stranger 'exercises' the company's ROFR …`, `✓ the company matches after its window closed …` |
+| 12 | MFN holders adopt later rounds' terms; nobody else can amend | `adopt_mfn_terms` | `scripts/attacks.ts` "MFN"; on testnet, SAFE #3 | `npm run attacks`, `npm run verify` | `✓ the MFN holder adopts a later round's terms …` |
+| 13a | A funded round the board never closes becomes refundable (as long again as it ran); someone else may pay for an investor | `refund`, `ft_on_transfer` (`"for"`) | `scripts/attacks.ts` "Investing", "Refunds" | `npm run attacks` | `✓ the board never closed it, for as long again as it ran …`, `✓ someone else pays …` |
+| 13 | Storage is paid by whoever adds it | `charge`, `storage_deposit` | `scripts/attacks.ts` | `npm run attacks` | `✓ the investor pays for the bytes her investment adds …`, `✓ invest without a storage balance: refused …` |
+| 14 | The tests catch broken security and math: 19 deliberately broken builds | `scripts/mutants.ts` (each mutation listed with what it breaks), `res/mutants/*.wasm.gz` | the attack suite or the property test, per mutant | `npm run mutants` | `19/19 mutants caught` |
+| 15 | YC's company ran on testnet with a real Sputnik DAO board and ended with YC's cap table | `scripts/demo-testnet.ts` (the owner ran it) | `scripts/verify.ts` | `npm run verify` | `20/20 chain checks passed` |
+| 16 | The deployed code is the checked-in wasm; the DAO runs `sputnik-v2.testnet`'s bytecode | `res/SHA256SUMS` | `scripts/verify.ts`, `scripts/judge.ts` | `npm run verify` | `✓ acme.… runs res/postmoney.wasm`, `✓ … runs the code sputnik-v2.testnet deploys (ZGdM2TFd…)` |
+| 17 | The page reads the contract live (the model is the contract's own preview; the waterfall its view) and falls back to a labelled snapshot; it works on a phone | `web/src/main.ts` | `scripts/shots.ts` (Playwright: desktop and phone, live and with testnet blocked; no horizontal scroll, no console errors) | `npm run build:web && npm run shots` | `page checks passed`; screenshots in `docs/shots/` |
+| 18 | Investors on other chains can fund a SAFE through NEAR Intents (mainnet path, priced, not executed) | `scripts/oneclick-quote.ts` | keyless 1Click `dry: true` quote | `npm run quote` | `An investor on base pays … USDC … and gets 25000.0 USDC on NEAR` |
+
+## Build the wasm yourself
+
+`npm run build:contracts` (Docker image with Rust 1.86 and cargo-near 0.23) rebuilds `res/postmoney.wasm` and
+`res/test_usdc.wasm` and their `res/SHA256SUMS`. `sh scripts/cargo.sh test -p safe-math` runs the Rust tests (YC's
+examples and the reference's 4,000 cases). `npm run mutants -- --build` rebuilds the mutants.
+
+## What isn't proven here
+
+The waterfall's limits (decision 0003); pre-money SAFEs and notes; a mainnet deployment; the 1Click path executed
+with real money. See the README's "Limits".

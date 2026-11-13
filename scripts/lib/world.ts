@@ -89,7 +89,7 @@ export async function startWorld(opts: { postmoney?: Buffer; board?: "plain" | "
   const view = <T = any>(method: string, args: Record<string, unknown> = {}) => chain.view<T>(A, method, args);
   const usdcOf = async (id: string) => BigInt(await chain.view<string>(U, "ft_balance_of", { account_id: id }));
   /** An investor (or anyone) pays the cap table through the token. */
-  const pay = (who: Account, amount: bigint, msg: Record<string, number>, token = U) =>
+  const pay = (who: Account, amount: bigint, msg: Record<string, unknown>, token = U) =>
     call(who, token, "ft_transfer_call", { receiver_id: A, amount: amount.toString(), msg: JSON.stringify(msg) }, 1n, 150n);
   /** The board acts: directly (plain owner), or by a Sputnik proposal that two of three council members approve. */
   const boardCall = async (method: string, args: Record<string, unknown>, o: { receiver?: string; deposit?: bigint; tgas?: bigint; why?: string } = {}): Promise<Result & { proposal?: number }> => {

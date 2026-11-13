@@ -1,6 +1,6 @@
 // Mutation checks: break one security- or math-critical line of the contract, and a suite must catch it.
 //   npm run mutants             run the attack suite or the property test on every prebuilt mutant in res/mutants/
-//   npm run mutants -- --quick  four of them (what npm run judge runs)
+//   npm run mutants -- --quick  three of them (what npm run judge runs)
 //   npm run mutants -- --build  rebuild res/mutants/*.wasm.gz from the source (needs Docker and the judge-full image)
 // Each mutant is the real contract with exactly one change below, built with the same toolchain as res/postmoney.wasm.
 import { execFileSync, spawn } from "node:child_process";
@@ -27,6 +27,8 @@ export const MUTANTS: Mutant[] = [
     find: `r.investments[i].refunded = true;`, replace: `r.investments[i].refunded = false;` },
   { id: "refund-to-caller", what: "a refund goes to whoever asks", file: PM, suite: "attacks",
     find: `ft_transfer(&token, &investor, amount, "SAFE round refund")`, replace: `ft_transfer(&token, &env::predecessor_account_id(), amount, "SAFE round refund")` },
+  { id: "refund-early", what: "a funded round becomes refundable the moment its deadline passes, before the board can close it", file: PM, suite: "attacks",
+    find: `let abandoned = now >= deadline.saturating_add(deadline.saturating_sub(opened));`, replace: `let abandoned = now >= deadline || opened == 0;` },
   { id: "close-twice", what: "a closed round can be closed again", file: PM, suite: "attacks",
     find: `require!(r.status == RoundStatus::Open, "the round is not open");\n        require!(r.raised.0 >= r.terms.min_raise.0`, replace: `require!(r.raised.0 >= r.terms.min_raise.0` },
   { id: "no-hash-check", what: "the board's execution ignores the previewed hash", file: PM, suite: "attacks",
@@ -52,7 +54,7 @@ export const MUTANTS: Mutant[] = [
   { id: "wrong-way-conversion", what: "preferred converts when converting pays less", file: SM, suite: "property",
     find: `let wants = split(exit, common, claims, &with)?.pay[i] > split(exit, common, claims, &without)?.pay[i];`, replace: `let wants = split(exit, common, claims, &with)?.pay[i] < split(exit, common, claims, &without)?.pay[i];` },
 ];
-const QUICK = ["no-hash-check", "refund-to-caller", "no-pool-shuffle", "pre-money-safe"];
+const QUICK = ["no-hash-check", "refund-to-caller", "no-pool-shuffle"];
 
 if (process.argv.includes("--build")) {
   const work = join(tmpdir(), `postmoney-mutants-${process.getuid?.() ?? 0}`);
@@ -82,7 +84,7 @@ function run(m: Mutant): Promise<{ m: Mutant; caught: boolean; detail: string }>
   const file = join(ROOT, `res/mutants/${m.id}.wasm.gz`);
   if (!existsSync(file)) return Promise.resolve({ m, caught: false, detail: "not built (npm run mutants -- --build)" });
   return new Promise((done) => {
-    const p = spawn(TSX, [join(ROOT, `scripts/${m.suite}.ts`)], { cwd: ROOT, env: { ...process.env, POSTMONEY_WASM: file, FRESH: "0" } });
+    const p = spawn(TSX, [join(ROOT, `scripts/${m.suite}.ts`)], { cwd: ROOT, env: { ...process.env, POSTMONEY_WASM: file, FRESH: "0", ...(m.suite === "attacks" ? { STOP_ON_FAIL: "1" } : {}) } });
     let out = "";
     p.stdout.on("data", (d) => (out += d));
     p.stderr.on("data", (d) => (out += d));

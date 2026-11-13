@@ -14,3 +14,4 @@ a later decision that supersedes one gets a new record, and the old entry is str
 | [0004](0004-the-board-votes-on-a-hash.md) | The board votes on a preview's hash; execution recomputes and refuses any other |
 | [0005](0005-state-and-storage.md) | All state in one record, every byte paid from the caller's storage balance; caps of 40 investors a round and 60 SAFEs |
 | [0006](0006-one-faucet-draw.md) | The testnet demo fits one faucet draw: a macro-free test token, gas lent per call, keys kept until `npm run lock` |
+| [0007](0007-refunds-if-abandoned-and-paying-for-someone.md) | Refunds open when a board leaves a funded round unclosed as long again as it ran; anyone may pay for an investor (`"for"`) |

@@ -1,6 +1,6 @@
 // NEAR plumbing for the scripts, on a local sandbox or on testnet. Keys live in the OS keyring (scripts/lib/keys.ts)
 // or in this process, never in a file. (Adapted from near-till's scripts/lib/near.ts, MIT, our own repo.)
-import { Account, JsonRpcProvider, KeyPair, nearToYocto, type KeyPairString } from "near-api-js";
+import { Account, actions, JsonRpcProvider, KeyPair, nearToYocto, type KeyPairString } from "near-api-js";
 
 export type Result = { ok: boolean; value?: any; reason?: string; tx?: string; logs: string[]; gas?: number };
 export const NEAR = 10n ** 24n;
@@ -89,9 +89,14 @@ export function panicOf(text: string): string {
  *  `{ok: false, reason}` with the contract's own words. `ok` means no receipt failed. */
 export async function call(acct: Account, contractId: string, method: string, args: Record<string, unknown> | Uint8Array, deposit = 0n, tgas = 100n): Promise<Result> {
   try {
-    const r: any = await acct.callFunctionRaw({ contractId, methodName: method, args: args as any, deposit, gas: tgas * TGAS, waitUntil: "FINAL" });
+    const r: any = await acct.signAndSendTransaction({
+      receiverId: contractId,
+      actions: [actions.functionCall(method, args as any, tgas * TGAS, deposit)],
+      waitUntil: "FINAL", // every receipt, callbacks included
+      throwOnFailure: false,
+    } as any);
     const logs = r.receipts_outcome.flatMap((o: any) => o.outcome.logs);
-    const failed = r.receipts_outcome.map((o: any) => o.outcome.status?.Failure).find(Boolean);
+    const failed = r.receipts_outcome.map((o: any) => o.outcome.status?.Failure).find(Boolean) ?? r.status?.Failure;
     const sv = r.status?.SuccessValue;
     let value: any;
     if (sv) {
@@ -99,7 +104,7 @@ export async function call(acct: Account, contractId: string, method: string, ar
       try { value = JSON.parse(raw); } catch { value = raw; }
     }
     const gas = (r.transaction_outcome.outcome.gas_burnt + r.receipts_outcome.reduce((n: number, o: any) => n + o.outcome.gas_burnt, 0)) / 1e12;
-    return { ok: !failed && !r.status?.Failure, value, tx: r.transaction.hash, logs, gas, reason: failed ? panicOf(JSON.stringify(failed)) : r.status?.Failure ? panicOf(JSON.stringify(r.status.Failure)) : undefined };
+    return { ok: !failed, value, tx: r.transaction.hash, logs, gas, reason: failed ? panicOf(JSON.stringify(failed)) : undefined };
   } catch (e) {
     const text = String((e as Error)?.message ?? e);
     return { ok: false, reason: panicOf(text), logs: [] };
@@ -110,6 +115,8 @@ export async function call(acct: Account, contractId: string, method: string, ar
 export const events = (r: Result, standard?: string) =>
   r.logs.filter((l) => l.startsWith("EVENT_JSON:")).map((l) => JSON.parse(l.slice(11))).filter((e) => !standard || e.standard === standard);
 
+export class StopOnFail extends Error {}
+
 export class Checks {
   fails = 0;
   count = 0;
@@ -119,6 +126,8 @@ export class Checks {
     if (!good) this.fails++;
     const d = String(detail ?? "");
     if (!this.quiet || !good) console.log(`${good ? "✓" : "✗"} ${what}${d ? `  (${d.length > 160 ? d.slice(0, 160) + "…" : d})` : ""}`);
+    // Mutation checks only need the first failure.
+    if (!good && process.env.STOP_ON_FAIL) throw new StopOnFail(what);
     return good;
   }
   /** An attack, with the refusal it must meet. */
