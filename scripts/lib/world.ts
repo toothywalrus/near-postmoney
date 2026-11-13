@@ -16,6 +16,14 @@ export const wasm = (file: string) => {
   return file.endsWith(".gz") ? gunzipSync(b) : b;
 };
 
+/** The cap-table wasm under test: res/postmoney.wasm, or POSTMONEY_WASM (a mutant, say; .gz is fine). */
+export const postmoneyWasm = () => {
+  const f = process.env.POSTMONEY_WASM;
+  if (!f) return wasm("postmoney.wasm");
+  const b = readFileSync(f);
+  return f.endsWith(".gz") ? gunzipSync(b) : b;
+};
+
 export type World = Awaited<ReturnType<typeof startWorld>>;
 
 /** Founders 9,250,000 common; options 650,000 (300k issued + 350k promised); pool 100,000: YC's Example 1 company. */
@@ -54,7 +62,7 @@ export async function startWorld(opts: { postmoney?: Buffer; board?: "plain" | "
     board = await sub("board");
   }
   const B = board.accountId;
-  const acme = await deploy("acme", opts.postmoney ?? wasm("postmoney.wasm"), "new", {
+  const acme = await deploy("acme", opts.postmoney ?? postmoneyWasm(), "new", {
     owner_id: B,
     company: "Acme Robotics, Inc.",
     usdc: U,

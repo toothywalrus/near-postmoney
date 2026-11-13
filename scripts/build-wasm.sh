@@ -11,5 +11,5 @@ docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e CARGO_HOME=/usr/local
 mkdir -p res
 cp contracts/target/near/postmoney/postmoney.wasm res/postmoney.wasm
 cp contracts/target/near/test_usdc/test_usdc.wasm res/test_usdc.wasm
-(cd res && sha256sum postmoney.wasm test_usdc.wasm > SHA256SUMS)
+(cd res && sha256sum postmoney.wasm test_usdc.wasm sputnikdao2-ZGdM2TFd.wasm > SHA256SUMS)
 ls -la res

@@ -681,7 +681,7 @@ impl Postmoney {
         require!(amount >= o.price.0, "match the full price");
         self.offers[offer as usize].status = OfferStatus::Matched;
         let treasury = self.treasury.clone();
-        self.move_shares(&o.seller, &treasury, o.class, o.shares.0);
+        self.move_shares(&o.seller, &treasury, o.class, o.shares.0, false);
         self.version += 1;
         // Two money legs; either one that fails stays claimable with withdraw_owed.
         self.send(&o.seller, o.price.0, "shares bought back by the company (ROFR)");
@@ -696,7 +696,8 @@ impl Postmoney {
         require!(o.status == OfferStatus::Funded, "the offer is not paid for, or already settled");
         require!(now_secs() >= o.window_ends.0, "the company's right of first refusal is still open");
         self.offers[offer as usize].status = OfferStatus::Settling;
-        self.move_shares(&o.seller, &o.buyer, o.class, o.shares.0);
+        // The buyer's shares stay locked until the seller is paid.
+        self.move_shares(&o.seller, &o.buyer, o.class, o.shares.0, true);
         self.version += 1;
         ft_transfer(&self.usdc, &o.seller, o.price.0, "secondary sale").then(Self::ext(env::current_account_id()).with_static_gas(GAS_CB).on_settled(offer))
     }
@@ -705,14 +706,14 @@ impl Postmoney {
     pub fn on_settled(&mut self, #[serializer(borsh)] offer: u32) -> bool {
         let o = self.offer(offer);
         if transfer_ok() {
+            let pos = self.position_mut(&o.buyer, o.class).unwrap();
+            pos.locked = U128(sub(pos.locked.0, o.shares.0));
             self.offers[offer as usize].status = OfferStatus::Settled;
             ev("offer_settled", obj!("offer": offer));
             return true;
         }
         // Roll back: the shares go back to the seller, still locked, and the offer is paid and ready to settle again.
-        self.move_shares(&o.buyer, &o.seller, o.class, o.shares.0);
-        let pos = self.position_mut(&o.seller, o.class).unwrap();
-        pos.locked = U128(add(pos.locked.0, o.shares.0));
+        self.move_shares(&o.buyer, &o.seller, o.class, o.shares.0, true);
         self.offers[offer as usize].status = OfferStatus::Funded;
         self.version += 1;
         ev("offer_settle_failed", obj!("offer": offer));
@@ -797,8 +798,9 @@ impl Postmoney {
         }
     }
 
-    /// Move locked shares (and their share of the preference) from one holder to another.
-    fn move_shares(&mut self, from: &AccountId, to: &AccountId, class: u32, shares: u128) {
+    /// Move locked shares (and their share of the preference) from one holder to another. With `keep_locked` they
+    /// stay locked at the receiver too: a settlement whose payment is still in flight can then be undone exactly.
+    fn move_shares(&mut self, from: &AccountId, to: &AccountId, class: u32, shares: u128, keep_locked: bool) {
         let p = self.position_mut(from, class).unwrap_or_else(|| env::panic_str("no such position"));
         let pref = ok(math_mul_div(p.preference.0, shares, p.shares.0));
         p.shares = U128(sub(p.shares.0, shares));
@@ -806,6 +808,10 @@ impl Postmoney {
         p.preference = U128(sub(p.preference.0, pref));
         self.positions.retain(|p| p.shares.0 > 0 || p.locked.0 > 0);
         self.credit_shares(to, class, shares, pref);
+        if keep_locked {
+            let q = self.position_mut(to, class).unwrap();
+            q.locked = U128(add(q.locked.0, shares));
+        }
     }
 
     fn send(&mut self, to: &AccountId, amount: u128, memo: &str) {

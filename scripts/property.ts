@@ -10,7 +10,7 @@ import { DEFAULT_ACCOUNT_ID, DEFAULT_PRIVATE_KEY, Sandbox } from "near-sandbox";
 import { convert, Refused, waterfall } from "../ref/reference.ts";
 import { capJson, claimJson, conversionJson, generate, generateWaterfalls, safeJson, termsJson } from "./lib/cases.ts";
 import { Chain, Checks, TGAS } from "./lib/near.ts";
-import { finish, stopSandbox, wasm } from "./lib/world.ts";
+import { finish, postmoneyWasm, stopSandbox } from "./lib/world.ts";
 
 const ROOT = new URL("..", import.meta.url);
 const FRESH = Number(process.env.FRESH ?? 500);
@@ -24,7 +24,7 @@ const root = chain.account(DEFAULT_ACCOUNT_ID);
 const calc = await chain.subAccount(root, "calc", "20");
 await calc.signAndSendTransaction({
   receiverId: calc.accountId,
-  actions: [actions.deployContract(wasm("postmoney.wasm")), actions.functionCall("new", { owner_id: root.accountId, company: "Calculator", usdc: root.accountId, treasury: root.accountId, founders: [{ account: root.accountId, shares: "1" }], options: "0", pool: "0", rofr_secs: null }, 100n * TGAS, 0n)],
+  actions: [actions.deployContract(postmoneyWasm()), actions.functionCall("new", { owner_id: root.accountId, company: "Calculator", usdc: root.accountId, treasury: root.accountId, founders: [{ account: root.accountId, shares: "1" }], options: "0", pool: "0", rofr_secs: null }, 100n * TGAS, 0n)],
   waitUntil: "FINAL",
 });
 console.log(`sandbox up, res/postmoney.wasm deployed (${Math.round((Date.now() - t0) / 1000)} s)`);
