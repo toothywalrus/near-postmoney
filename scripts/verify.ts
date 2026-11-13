@@ -66,11 +66,19 @@ if (staleStep) {
 c.check(t.version !== undefined && (await v<any[]>("priced_rounds")).length === 1, "exactly one priced round executed (the stale one converted nothing)");
 
 c.section("Money and certificates");
+// The test token's `mint` is open to anyone, so anyone can send tUSDC to the DAO or the cap table. Exact balances would
+// let a stranger fail these checks with one unit: check what the contracts owe instead, and report any surplus.
+const extra = (x: bigint) => (x > 0n ? `, plus $${Number(x) / 1e6} sent by others` : "");
 const treasury = BigInt(await chain.view<string>(USDC, "ft_balance_of", { account_id: DAO }));
-c.check(treasury === 1_120_000_000_000n, "the treasury (the DAO) holds $1,120,000 tUSDC: $1m + $50k + $100k raised, less the $30k it paid to buy shares back", `${Number(treasury) / 1e6}`);
+c.check(treasury >= 1_120_000_000_000n, "the treasury (the DAO) holds $1,120,000 tUSDC: $1m + $50k + $100k raised, less the $30k it paid to buy shares back", `${Number(treasury) / 1e6}${extra(treasury - 1_120_000_000_000n)}`);
 const escrow = BigInt(await chain.view<string>(USDC, "ft_balance_of", { account_id: COMPANY }));
-c.check(escrow === 0n, "nothing is left in the cap table's escrow");
 const offers = await v<any[]>("offers");
+const rounds = await v<any[]>("rounds");
+const owes =
+  rounds.filter((r) => r.status !== "Closed").flatMap((r) => r.investments).filter((i: any) => !i.refunded).reduce((a: bigint, i: any) => a + BigInt(i.amount), 0n) +
+  offers.filter((o) => o.status === "Funded" || o.status === "Settling").reduce((a: bigint, o: any) => a + BigInt(o.price), 0n) +
+  t.owed.reduce((a: bigint, [, x]: [string, string]) => a + BigInt(x), 0n);
+c.check(owes === 0n && escrow >= owes, "nothing is left in the cap table's escrow: no investment, offer or failed payout is owed", `owes $${Number(owes) / 1e6}, holds $${Number(escrow) / 1e6}${extra(escrow - owes)}`);
 c.check(offers[0]?.status === "Settled" && offers[1]?.status === "Matched" && t.positions.some((x: any) => x.holder === DAO && x.shares === "50000"), "secondary sales: one settled after the window, one bought by the company (it holds 50,000 shares)");
 const supply = await v("nft_total_supply");
 const t3 = await v("nft_token", { token_id: "3" });
