@@ -7,8 +7,9 @@
 //   4. Bridge SAFEs left outstanding (an MFN SAFE that adopts a later round's terms, and a capped one) for the page.
 // Writes deploy/testnet-run.json (transaction links). Each step is skipped if the chain shows it done.
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
-import { call, events, milli, sleep, TGAS, usd, type Result } from "./lib/near.ts";
-import { COMPANY, DAO, EXPLORER, person, testnet, USDC } from "./lib/testnet.ts";
+import { actions } from "near-api-js";
+import { call as rawCall, events, milli, sleep, TGAS, usd, type Result } from "./lib/near.ts";
+import { COMPANY, DAO, EXPLORER, FUNDER, person, testnet, USDC } from "./lib/testnet.ts";
 
 const chain = testnet();
 const OUT = new URL("../deploy/testnet-run.json", import.meta.url);
@@ -27,24 +28,57 @@ const must = (what: string, r: Result, extra: Record<string, unknown> = {}) => {
   return r;
 };
 const acct = (n: Parameters<typeof person>[0]) => chain.account(person(n));
+// Testnet charges prepaid gas up front at about 0.001 NEAR per TGas (refunded after, less what was burnt), so a 300 TGas
+// vote needs 0.3 NEAR on hand. The people hold a few hundredths: before a call, the funder lends what is missing;
+// at the end each one sends back all but 0.02 NEAR.
+const funder = chain.account(FUNDER);
+/** Spendable NEAR: the balance less what its own storage locks; read optimistically so a just-sent bond counts. */
+async function available(id: string): Promise<bigint> {
+  const a: any = await chain.provider.viewAccount({ accountId: id, blockQuery: { finality: "optimistic" } } as any);
+  return BigInt(a.amount) - BigInt(a.storage_usage) * 10n ** 19n;
+}
+const UPFRONT_PER_TGAS = 1_010_000_000_000_000_000_000n; // yoctoNEAR, measured: a 100 TGas call costs 0.101 NEAR up front
+async function call(who: typeof funder, contract: string, method: string, args: Record<string, unknown>, deposit = 0n, tgas = 30n): Promise<Result> {
+  const need = deposit + tgas * UPFRONT_PER_TGAS + milli(15);
+  const have = await available(who.accountId);
+  if (have >= need) return rawCall(who, contract, method, args, deposit, tgas);
+  await funder.signAndSendTransaction({ receiverId: who.accountId, actions: [actions.transfer(need - have)], waitUntil: "FINAL" } as any);
+  const r = await rawCall(who, contract, method, args, deposit, tgas);
+  // Pay the loan back: everything above what the account held before, less the deposit it attached.
+  const back = (await available(who.accountId)) - (have > deposit ? have - deposit : 0n) - milli(1);
+  if (back > milli(2)) await who.signAndSendTransaction({ receiverId: FUNDER, actions: [actions.transfer(back)], waitUntil: "FINAL" } as any);
+  return r;
+}
 const [ada, ben, erin, alice, bob, carol, dave] = (["ada", "ben", "erin", "alice", "bob", "carol", "dave"] as const).map(acct);
 const view = <T = any>(m: string, a: Record<string, unknown> = {}) => chain.view<T>(COMPANY, m, a);
 const usdcOf = async (id: string) => BigInt(await chain.view<string>(USDC, "ft_balance_of", { account_id: id }));
-const pay = (who: typeof ada, amount: bigint, msg: Record<string, number>) => call(who, USDC, "ft_transfer_call", { receiver_id: COMPANY, amount: amount.toString(), msg: JSON.stringify(msg) }, 1n, 120n);
+const pay = (who: typeof ada, amount: bigint, msg: Record<string, number>) => call(who, USDC, "ft_transfer_call", { receiver_id: COMPANY, amount: amount.toString(), msg: JSON.stringify(msg) }, 1n, 100n);
 let voter = 0;
 /** A Sputnik proposal of one or more calls to one receiver: ada proposes and votes, ben or erin casts the second vote. */
 async function propose(why: string, calls: { method: string; args: Record<string, unknown>; deposit?: bigint; tgas?: bigint }[], receiver = COMPANY, expectFail = false) {
   const kind = { FunctionCall: { receiver_id: receiver, actions: calls.map((c) => ({ method_name: c.method, args: Buffer.from(JSON.stringify(c.args)).toString("base64"), deposit: (c.deposit ?? 0n).toString(), gas: ((c.tgas ?? 100n) * TGAS).toString() })) } };
-  const p = await call(ada, DAO, "add_proposal", { proposal: { description: why, kind } }, milli(10), 30n);
-  must(`proposal: ${why}`, p, { proposal: p.value });
-  const id = p.value as number;
-  must(`  ada votes for proposal ${id}`, await call(ada, DAO, "act_proposal", { id, action: "VoteApprove", proposal: kind }, 0n, 300n));
+  // Resume a proposal this script already made (same description, still in progress) rather than file it twice.
+  const open = (await chain.view<any[]>(DAO, "get_proposals", { from_index: 0, limit: 100 })).find((x) => x.description === why && x.status === "InProgress");
+  let id: number;
+  if (open) {
+    id = open.id;
+    console.log(`resuming proposal ${id}: ${why}`);
+  } else {
+    const p = await call(ada, DAO, "add_proposal", { proposal: { description: why, kind } }, milli(10), 20n);
+    must(`proposal: ${why}`, p, { proposal: p.value });
+    id = p.value as number;
+  }
+  const votes = open?.votes ?? {};
+  if (!votes[ada.accountId]) must(`  ada votes for proposal ${id}`, await call(ada, DAO, "act_proposal", { id, action: "VoteApprove", proposal: kind }, 0n, 50n));
   const second = voter++ % 2 === 0 ? ben : erin;
-  const v = await call(second, DAO, "act_proposal", { id, action: "VoteApprove", proposal: kind }, 0n, 300n);
+  const actionGas = calls.reduce((a, c) => a + (c.tgas ?? 100n), 0n);
+  const v = await call(second, DAO, "act_proposal", { id, action: "VoteApprove", proposal: kind }, 0n, actionGas + 50n > 300n ? 300n : actionGas + 50n);
   const st = await chain.view<any>(DAO, "get_proposal", { id });
   const ok = st.status === "Approved";
-  const r = { ...v, ok: expectFail ? !ok : ok, reason: v.reason ?? st.status };
-  step(`  ${second.accountId.split(".")[0]} votes: proposal ${id} ${st.status}${expectFail ? " (expected: the contract refuses)" : ""}`, r, { proposal: id, status: st.status, refusal: v.reason });
+  // This Sputnik version records the vote's outcome (Approved) even when the call it makes fails; what the call did
+  // is in the receipts: `v.ok` is false and `v.reason` is the contract's refusal.
+  const r = { ...v, ok: expectFail ? !v.ok && !!v.reason : ok && v.ok, reason: v.reason ?? st.status };
+  step(`  ${second.accountId.split(".")[0]} votes: proposal ${id} ${st.status}${expectFail ? `; the cap table refuses to execute it: "${v.reason}"` : ""}`, r, { proposal: id, status: st.status, refusal: v.reason });
   if (!r.ok) throw new Error(`proposal ${id}: ${st.status} ${v.reason ?? ""}`);
   return { id, status: st.status, tx: v.tx, reason: v.reason };
 }
@@ -53,13 +87,13 @@ const rounds = await view<any[]>("rounds");
 // 0. Everyone gets test USDC (minting registers them) and the investors and sellers a storage balance.
 const mints: [typeof ada, bigint][] = [[alice, usd(350_000)], [bob, usd(900_000)], [dave, usd(60_000)], [carol, usd(40_000)]];
 for (const [who, amount] of mints) {
-  if ((await usdcOf(who.accountId)) === 0n) must(`${who.accountId.split(".")[0]} mints ${amount / 1_000_000n} test USDC`, await call(who, USDC, "mint", { amount: amount.toString() }, 1_250_000_000_000_000_000_000n));
+  if ((await usdcOf(who.accountId)) === 0n) must(`${who.accountId.split(".")[0]} mints ${amount / 1_000_000n} test USDC`, await call(who, USDC, "mint", { amount: amount.toString() }, 1_250_000_000_000_000_000_000n, 10n));
 }
 for (const who of [alice, bob, ada, ben]) {
-  if (BigInt(await view("storage_balance_of", { account_id: who.accountId })) === 0n) must(`${who.accountId.split(".")[0]} adds 0.01 NEAR storage balance on the cap table`, await call(who, COMPANY, "storage_deposit", {}, milli(10)));
+  if (BigInt(await view("storage_balance_of", { account_id: who.accountId })) === 0n) must(`${who.accountId.split(".")[0]} adds 0.01 NEAR storage balance on the cap table`, await call(who, COMPANY, "storage_deposit", {}, milli(10), 10n));
 }
 for (const who of [ada, ben]) {
-  if (!(await chain.view(USDC, "storage_balance_of", { account_id: who.accountId }))) must(`${who.accountId.split(".")[0]} registers with the test USDC`, await call(who, USDC, "storage_deposit", {}, 1_250_000_000_000_000_000_000n));
+  if (!(await chain.view(USDC, "storage_balance_of", { account_id: who.accountId }))) must(`${who.accountId.split(".")[0]} registers with the test USDC`, await call(who, USDC, "storage_deposit", {}, 1_250_000_000_000_000_000_000n, 10n));
 }
 
 // 1. SAFE rounds.
@@ -127,14 +161,14 @@ if (offers.length === 0) {
   offers = await view<any[]>("offers");
 }
 if (offers[0].status === "Funded") {
-  const early = await call(dave, COMPANY, "settle_offer", { offer: 0 });
+  const early = await call(dave, COMPANY, "settle_offer", { offer: 0 }, 0n, 60n);
   step("dave tries to settle inside the company's window (expected: refused)", { ...early, ok: !early.ok, reason: early.reason }, { refusal: early.reason });
   const wait = Number(offers[0].window_ends) - Math.floor(Date.now() / 1000) + 8;
   if (wait > 0) {
     console.log(`waiting ${wait} s for the right-of-first-refusal window`);
     await sleep(wait * 1000);
   }
-  must("after the window, dave settles: shares to dave, $50,000 to ada", await call(dave, COMPANY, "settle_offer", { offer: 0 }, 0n, 100n));
+  must("after the window, dave settles: shares to dave, $50,000 to ada", await call(dave, COMPANY, "settle_offer", { offer: 0 }, 0n, 60n));
 }
 
 // 4. Bridge SAFEs, left outstanding: an MFN SAFE first, then a capped round whose terms the MFN holder adopts.
@@ -162,4 +196,9 @@ if (mfn) must(`bob's MFN SAFE #${mfn.token_id} adopts the bridge round's terms (
 const t = await view("cap_table");
 run.final = { company_capitalization: t.company_capitalization, positions: t.positions.length, certificates: t.certificates.map((c: any) => c.token_id) };
 save();
+for (const who of [ada, ben, erin, alice, bob, carol, dave]) {
+  const extra = (await chain.balance(who.accountId)) - milli(20);
+  if (extra > milli(5)) await who.signAndSendTransaction({ receiverId: FUNDER, actions: [actions.transfer(extra)], waitUntil: "FINAL" } as any);
+}
+console.log(`funder: ${Number(await chain.balance(FUNDER)) / 1e24} NEAR`);
 console.log(`\ndone: ${t.positions.length} positions, ${t.certificates.length} SAFE certificates outstanding; deploy/testnet-run.json written`);
