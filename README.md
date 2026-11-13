@@ -43,15 +43,15 @@ builds (the suites run side by side):
 ```
 Check                                                                                Result  Time   Detail
 res/*.wasm match res/SHA256SUMS                                                      PASS    0s     postmoney.wasm, test_usdc.wasm, sputnikdao2-ZGdM2TFd.wasm
-Reference: YC's worked examples + invariants on 2,000 random rounds and 2,000 exits  PASS    8s     7 ✓, 0 ✗; invariants hold on 1883 converted random cases (713 capped SAFEs took …
-Testnet deployment re-read from chain state                                          PASS    8s     23/23 chain checks passed
-Web page builds (web/dist)                                                           PASS    9s     built: serve web/dist with any static server
-Kill test on the wasm: contract vs reference, every number (sandbox)                 PASS    58s    wasm = reference on 2500 random priced rounds: 2349 converted identically (6869 SAFEs, 893 capped ones at the round's price), 151 refused by both; 6/6 property checks passed
-The company's whole life, board = real Sputnik DAO (sandbox)                         PASS    121s   44/44 sandbox checks passed
-Mutation checks: 3 of 19 (npm run mutants runs all)                                  PASS    126s   3/3 mutants caught
-Attack suite: each attack meets its stated refusal (sandbox)                         PASS    161s   54/54 attacks refused as expected
+Web page builds (web/dist)                                                           PASS    2s     built: serve web/dist with any static server
+Reference: YC's worked examples + invariants on 2,000 random rounds and 2,000 exits  PASS    4s     7 ✓, 0 ✗; invariants hold on 1883 converted random cases (713 capped SAFEs took …
+Testnet deployment re-read from chain state                                          PASS    5s     23/23 chain checks passed
+Kill test on the wasm: contract vs reference, every number (sandbox)                 PASS    33s    wasm = reference on 2500 random priced rounds: 2349 converted identically (6869 SAFEs, 893 capped ones at the round's price), 151 refused by both; 6/6 property checks passed
+The company's whole life, board = real Sputnik DAO (sandbox)                         PASS    107s   44/44 sandbox checks passed
+Mutation checks: 3 of 20 (npm run mutants runs all)                                  PASS    114s   3/3 mutants caught
+Attack suite: each attack meets its stated refusal (sandbox)                         PASS    147s   55/55 attacks refused as expected
 
-All 8 checks passed in 161 s.
+All 8 checks passed in 147 s.
 ```
 
 [`JUDGES.md`](JUDGES.md) maps every claim to its code, its test and its command.
