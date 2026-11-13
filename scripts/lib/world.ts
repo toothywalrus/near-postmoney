@@ -10,6 +10,10 @@ import { actions, type Account } from "near-api-js";
 import { DEFAULT_ACCOUNT_ID, DEFAULT_PRIVATE_KEY, Sandbox } from "near-sandbox";
 import { call, Chain, milli, NEAR, sleep, TGAS, usd, type Result } from "./near.ts";
 
+// near-sandbox gives a starting node NEAR_RPC_TIMEOUT_SECS (default 10) to answer, then throws and leaves the node
+// running. npm run judge starts four nodes at once; on a busy machine that can take longer, so allow 90 s.
+process.env.NEAR_RPC_TIMEOUT_SECS ??= "90";
+
 const RES = new URL("../../res/", import.meta.url);
 export const wasm = (file: string) => {
   const b = readFileSync(new URL(file, RES));
