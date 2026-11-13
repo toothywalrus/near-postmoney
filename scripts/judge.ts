@@ -3,7 +3,7 @@
 //   fast (default): wasm sums; the reference on YC's examples and 2,000 random rounds; the contract's wasm vs the
 //                   reference on a local sandbox; the attack suite; the company's whole life with a real Sputnik DAO
 //                   board; three mutation checks; the testnet deployment re-read; the web page builds.
-//   --full:         also all 19 mutation checks, page screenshots (Playwright), and the Rust tests if cargo or the
+//   --full:         also all 20 mutation checks, page screenshots (Playwright), and the Rust tests if cargo or the
 //                   judge-full Docker image is present.
 // Suites run side by side; each prints as it finishes; the table comes last. A suite that can't reach testnet is SKIP.
 import { spawn, spawnSync } from "node:child_process";
@@ -52,7 +52,7 @@ const suites: Promise<void>[] = [
   run("Kill test on the wasm: contract vs reference, every number (sandbox)", TSX, ["scripts/property.ts"], (o) => last(o, /wasm = reference on \d+ random priced/).replace(/^✓ /, "").replace(/ \(0 disagree.*$/, "").trim() + `; ${last(o, /property checks/).replace(/ \(\d+ s\)$/, "")}`),
   run("Attack suite: each attack meets its stated refusal (sandbox)", TSX, ["scripts/attacks.ts"], (o) => last(o, /attacks refused/)),
   run("The company's whole life, board = real Sputnik DAO (sandbox)", TSX, ["scripts/sandbox.ts"], (o) => last(o, /sandbox checks/)),
-  run(FULL ? "Mutation checks: all 19" : "Mutation checks: 3 of 19 (npm run mutants runs all)", TSX, ["scripts/mutants.ts", ...(FULL ? [] : ["--quick"])], (o) => last(o, /mutants caught/), { PARALLEL: FULL ? "4" : "3" }),
+  run(FULL ? "Mutation checks: all 20" : "Mutation checks: 3 of 20 (npm run mutants runs all)", TSX, ["scripts/mutants.ts", ...(FULL ? [] : ["--quick"])], (o) => last(o, /mutants caught/), { PARALLEL: FULL ? "4" : "3" }),
   run("Testnet deployment re-read from chain state", TSX, ["scripts/verify.ts"], (o) => last(o, /chain checks/)),
   run("Web page builds (web/dist)", "npm", ["run", "-s", "build:web"], (o) => (/built in/.test(o) ? "built: serve web/dist with any static server" : "")),
 ];

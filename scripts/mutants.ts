@@ -29,6 +29,8 @@ export const MUTANTS: Mutant[] = [
     find: `ft_transfer(&token, &investor, amount, "SAFE round refund")`, replace: `ft_transfer(&token, &env::predecessor_account_id(), amount, "SAFE round refund")` },
   { id: "refund-early", what: "a funded round becomes refundable the moment its deadline passes, before the board can close it", file: PM, suite: "attacks",
     find: `let abandoned = now >= deadline.saturating_add(deadline.saturating_sub(opened));`, replace: `let abandoned = now >= deadline || opened == 0;` },
+  { id: "mfn-unissued", what: "an MFN holder adopts the terms of a later round that never issued its SAFEs", file: PM, suite: "attacks",
+    find: `later.id > c.round && later.status == RoundStatus::Closed,`, replace: `later.id > c.round && later.status != RoundStatus::Refunding,` },
   { id: "close-twice", what: "a closed round can be closed again", file: PM, suite: "attacks",
     find: `require!(r.status == RoundStatus::Open, "the round is not open");\n        require!(r.raised.0 >= r.terms.min_raise.0`, replace: `require!(r.raised.0 >= r.terms.min_raise.0` },
   { id: "no-hash-check", what: "the board's execution ignores the previewed hash", file: PM, suite: "attacks",

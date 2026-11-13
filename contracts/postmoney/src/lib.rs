@@ -587,8 +587,9 @@ impl Postmoney {
         let c = self.certs.iter_mut().find(|c| c.token_id == token_id).unwrap_or_else(|| env::panic_str("no such outstanding SAFE"));
         require!(c.owner == who, "only the holder can amend this SAFE");
         require!(c.terms.mfn, "this SAFE has no MFN provision");
-        // A later round: opened after this SAFE's own (its SAFEs are issued after this one). Not one that was called off.
-        require!(later.id > c.round && later.status != RoundStatus::Refunding, "MFN applies to SAFEs the company issued later");
+        // YC's MFN clause: "Subsequent Convertible Securities" the company *issues* after this one. So a round opened
+        // after this SAFE's own, and closed (its SAFEs issued); not one still open or called off.
+        require!(later.id > c.round && later.status == RoundStatus::Closed, "MFN applies to SAFEs the company issued later (a closed later round)");
         let token = c.token_id.clone();
         require!(self.distinct_terms(Some(&later.terms.safe), Some(&token)) <= MAX_DISTINCT_TERMS, "the company has as many different SAFE terms outstanding as one conversion handles");
         let c = self.certs.iter_mut().find(|c| c.token_id == token).unwrap();

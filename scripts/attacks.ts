@@ -127,6 +127,9 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     c.refused(await call(bob, A, "adopt_mfn_terms", { token_id: mfn.token_id, round: 0 }), "issued later", "an MFN holder adopts an earlier round's terms");
     c.refused(await call(mallory, A, "adopt_mfn_terms", { token_id: mfn.token_id, round: 1 }), "only the holder", "a stranger amends bob's MFN SAFE");
     ok(await w.boardCall("open_round", round("Later, better", { deadline: far, cap: usd(6_000_000).toString(), discount_bps: 1000 })), "open round 6 ($6m cap, 10% discount)");
+    c.refused(await call(bob, A, "adopt_mfn_terms", { token_id: mfn.token_id, round: 6 }), "a closed later round", "an MFN holder adopts the terms of a later round that hasn't issued its SAFEs yet");
+    ok(await w.pay(carol, usd(20_000), { invest: 6 }), "carol invests in round 6");
+    ok(await w.boardCall("close_round", { round: 6 }), "close round 6");
     const adopt = await call(bob, A, "adopt_mfn_terms", { token_id: mfn.token_id, round: 6 });
     const amended = await w.view("nft_token", { token_id: mfn.token_id });
     c.check(adopt.ok && JSON.parse(amended.metadata.extra).cap === usd(6_000_000).toString() && JSON.parse(amended.metadata.extra).amended_from_round === 5, "the MFN holder adopts a later round's terms: its certificate now reads $6m cap, 10% discount", amended.metadata.title);

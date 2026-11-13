@@ -15,8 +15,8 @@ waterfall and secondary sales (with the company's right of first refusal) are vi
 >   ([links below](#on-testnet)); a later round missed its minimum and was refunded, one refund failing and rolling
 >   back on chain. `npm run verify` re-reads all of it (23 checks).
 > - **Runs locally, free:** `npm run judge`: the kill test on the contract's wasm (2,500 random rounds + 2,500 random
->   exits, every number equal to an independent reference), the attack suite (54 checks), the company's whole life
->   with a real Sputnik DAO on a sandbox (44 checks), mutation checks (19/19 caught with `npm run mutants`), the web
+>   exits, every number equal to an independent reference), the attack suite (55 checks), the company's whole life
+>   with a real Sputnik DAO on a sandbox (44 checks), mutation checks (20/20 caught with `npm run mutants`), the web
 >   page build.
 > - **Mainnet, waits for the owner:** nothing is deployed there. "Invest from any chain" is priced with keyless
 >   1Click dry quotes (`npm run quote`: $25,000 of USDC on NEAR from USDC on Base for $25,257.63, about 35 s; 1Click
@@ -76,8 +76,8 @@ before closing. The money meanwhile sits in a bank account, the SAFE is a PDF, a
   refundable too, so the worst case is a refund, never a lock-up. Someone else may pay for an investor
   (`{"invest": round, "for": "investor.near"}`, how 1Click delivers from another chain; decision 0007). Every payout
   has a callback that rolls back a failed transfer.
-- **MFN.** An MFN holder can adopt the terms of any SAFE round the company opens later (`adopt_mfn_terms`); the
-  certificate's terms change.
+- **MFN.** An MFN holder can adopt the terms of any SAFE round the company opened and closed later (YC's clause:
+  securities the company *issues* later; `adopt_mfn_terms`); the certificate's terms change.
 - **The priced round.** `preview_priced_round` returns the exact result (price per share, each SAFE's shares and
   basis, the pool increase, every new investor's shares) and a hash of the cap table and the result. The board's
   proposal calls `execute_priced_round(terms, hash)`; the contract recomputes and refuses any other hash. Executing
@@ -131,7 +131,7 @@ terms under the old hash, a SAFE that changed hands after the preview, and a rep
 
 ## Money safety
 
-`npm run attacks` runs 54 checks on the real wasm, each attack with the refusal it must meet: invest after close, in
+`npm run attacks` runs 55 checks on the real wasm, each attack with the refusal it must meet: invest after close, in
 an unknown token, over the max, without storage, after the deadline; double refund; claim another's refund (the money
 still goes to who paid); close twice or below the minimum; convert twice; move a SAFE without the board's consent or to
 another receiver than consented; front-run the company's right of first refusal; exercise it as a stranger or after
@@ -140,13 +140,14 @@ no storage balance; and two payouts that fail and roll back (to the treasury at 
 at settlement). It found a real bug: a failed payout to a secondary seller couldn't roll back, because the rollback
 tried to unlock shares the buyer held unlocked; the buyer's shares now stay locked until the seller is paid.
 
-`npm run mutants` builds nothing (the 19 mutants are checked in, `res/mutants/`): it runs the attack suite or the
+`npm run mutants` builds nothing (the 20 mutants are checked in, `res/mutants/`): it runs the attack suite or the
 property test against each deliberately broken contract and expects a failure: no board check, any token, no max, free
-storage, double refund, refund to the caller, refunds before the board could close, close twice, no hash check, consent for any receiver, no ROFR window,
+storage, double refund, refund to the caller, refunds before the board could close, MFN adopting an unissued
+round's terms, close twice, no hash check, consent for any receiver, no ROFR window,
 anyone may exercise ROFR, no rollback at close or at settlement, Company Capitalization rounded up, the pool increase
 left out of the pre-money (the classic spreadsheet error), SAFEs left out of their own Company Capitalization
 (pre-money SAFE math), capped SAFEs never taking the round's price, and preferred converting the wrong way.
-Measured: **19/19 caught** in 307 s (four at a time). Two of them show why the arithmetic is the product: leaving
+Measured: **20/20 caught** in 319 s (four at a time). Two of them show why the arithmetic is the product: leaving
 the pool increase out of the pre-money (the classic spreadsheet error) prices YC's Series A at $1.2750 instead of
 $1.1144, and leaving the SAFEs out of their own Company Capitalization (pre-money SAFE math) gives Investor A 500,000
 shares instead of 588,235.
@@ -159,8 +160,8 @@ shares instead of 588,235.
 | `npm run reference` | the reference reproduces YC's four questions; invariants on 2,000 random rounds and exits (5 s, no network) |
 | `npm run property` | the contract's wasm reproduces YC's examples and agrees with the reference on 2,500 + 2,500 random cases |
 | `npm run sandbox` | the company's whole life with a real Sputnik DAO as the board, YC's numbers on chain (44 checks, ~85 s) |
-| `npm run attacks` | 54 checks, each attack refused as stated |
-| `npm run mutants` | 19/19 broken contracts caught (about 8 minutes) |
+| `npm run attacks` | 55 checks, each attack refused as stated |
+| `npm run mutants` | 20/20 broken contracts caught (about 6 minutes) |
 | `npm run verify` | the testnet deployment re-read: code = `res/*.wasm`, the DAO owns it, YC's Series A on chain, the stale proposal refused, the refunds and the rolled-back one (23 checks) |
 | `npm run build:web`, then serve `web/dist/` | the page: Acme's cap table live from testnet, the next round modelled by the contract's own preview, the waterfall slider, the SAFE certificates |
 | `npm run quote` | keyless 1Click dry quotes: an investor on Base pays USDC, exactly $25,000 USDC lands on NEAR; and 1Click accepts delivering it into a round with the investor named |
@@ -203,10 +204,13 @@ The story (every transaction is in [`deploy/testnet-run.json`](deploy/testnet-ru
 NEAR spent: DAO 4.85, cap table 3.86 (code and state), token 0.45, seven people and gas the rest; 0.57 left on the
 funder.
 
-The cap table's code was replaced twice while the deployer's key exists, each time with the state carried over (same
-layout): before the story ([tx](https://testnet.nearblocks.io/txns/2GMyrE4v3gVVAT4UsJ9Kv1eswLF8ru2QD6HEoA6kq4A8), MFN
-may adopt any later round) and after it ([tx](https://testnet.nearblocks.io/txns/Ft59rq51BKbTN1P8JSYVb43wSivaNdgHioNxtiLbxzfx),
-decision 0007). `npm run verify` checks that the code running now is `res/postmoney.wasm`.
+The cap table's code was replaced four times while the deployer's key exists, each time with the state carried over
+(same layout): before the story ([tx](https://testnet.nearblocks.io/txns/2GMyrE4v3gVVAT4UsJ9Kv1eswLF8ru2QD6HEoA6kq4A8),
+MFN may adopt a later round), then [decision 0007](https://testnet.nearblocks.io/txns/Ft59rq51BKbTN1P8JSYVb43wSivaNdgHioNxtiLbxzfx)
+(refunds for abandoned rounds, paying for someone), [decision 0008](https://testnet.nearblocks.io/txns/8vWi5qmH8TRpygXLuVPDB3NmxggPX47KJN9iFhbf2LhP)
+(the faster arithmetic) and [MFN only from closed rounds](https://testnet.nearblocks.io/txns/FicHXRfXPQCNq6o3TiBUZB5vK6Dpkh4XrRro5Zkfp9a5)
+(bob's adoption on chain already met it: round 3 was closed). `npm run verify` checks that the code running now is
+`res/postmoney.wasm`.
 
 ## What NEAR does here, concretely
 
