@@ -575,7 +575,8 @@ impl Postmoney {
         let c = self.certs.iter_mut().find(|c| c.token_id == token_id).unwrap_or_else(|| env::panic_str("no such outstanding SAFE"));
         require!(c.owner == who, "only the holder can amend this SAFE");
         require!(c.terms.mfn, "this SAFE has no MFN provision");
-        require!(later.id != c.round && later.opened.0 >= c.issued.0 && later.status != RoundStatus::Refunding, "MFN applies to SAFEs the company issued later");
+        // A later round: opened after this SAFE's own (its SAFEs are issued after this one). Not one that was called off.
+        require!(later.id > c.round && later.status != RoundStatus::Refunding, "MFN applies to SAFEs the company issued later");
         c.terms = later.terms.safe.clone();
         c.amended_from_round = Some(c.round);
         c.round = later.id;
