@@ -8,11 +8,12 @@
 // Suites run side by side; each prints as it finishes; the table comes last. A suite that can't reach testnet is SKIP.
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const FULL = process.argv.includes("--full");
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
+const MUTANTS = readdirSync(new URL("../res/mutants/", import.meta.url)).filter((f) => f.endsWith(".wasm.gz")).length;
 const TSX = `${ROOT}node_modules/.bin/tsx`;
 type Row = { name: string; status: "PASS" | "FAIL" | "SKIP"; detail: string; secs: number };
 const rows: Row[] = [];
@@ -52,7 +53,7 @@ const suites: Promise<void>[] = [
   run("Kill test on the wasm: contract vs reference, every number (sandbox)", TSX, ["scripts/property.ts"], (o) => last(o, /wasm = reference on \d+ random priced/).replace(/^✓ /, "").replace(/ \(0 disagree.*$/, "").trim() + `; ${last(o, /property checks/).replace(/ \(\d+ s\)$/, "")}`),
   run("Attack suite: each attack meets its stated refusal (sandbox)", TSX, ["scripts/attacks.ts"], (o) => last(o, /attacks refused/)),
   run("The company's whole life, board = real Sputnik DAO (sandbox)", TSX, ["scripts/sandbox.ts"], (o) => last(o, /sandbox checks/)),
-  run(FULL ? "Mutation checks: all 20" : "Mutation checks: 3 of 20 (npm run mutants runs all)", TSX, ["scripts/mutants.ts", ...(FULL ? [] : ["--quick"])], (o) => last(o, /mutants caught/), { PARALLEL: FULL ? "4" : "3" }),
+  run(FULL ? `Mutation checks: all ${MUTANTS}` : `Mutation checks: 3 of ${MUTANTS} (npm run mutants runs all)`, TSX, ["scripts/mutants.ts", ...(FULL ? [] : ["--quick"])], (o) => last(o, /mutants caught/), { PARALLEL: FULL ? "4" : "3" }),
   run("Testnet deployment re-read from chain state", TSX, ["scripts/verify.ts"], (o) => last(o, /chain checks/)),
   run("Web page builds (web/dist)", "npm", ["run", "-s", "build:web"], (o) => (/built in/.test(o) ? "built: serve web/dist with any static server" : "")),
 ];
