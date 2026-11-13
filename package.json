@@ -1,0 +1,37 @@
+{
+  "name": "near-postmoney",
+  "private": true,
+  "type": "module",
+  "description": "A company cap table on NEAR whose board is a Sputnik DAO: post-money SAFE rounds in USDC, SAFE certificates as NFTs, exact conversion at the priced round.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "judge": "tsx scripts/judge.ts",
+    "judge:full": "tsx scripts/judge.ts --full",
+    "reference": "tsx scripts/reference-check.ts",
+    "cases": "tsx scripts/reference-check.ts --write-cases",
+    "property": "tsx scripts/property.ts",
+    "sandbox": "tsx scripts/sandbox.ts",
+    "attacks": "tsx scripts/attacks.ts",
+    "mutants": "tsx scripts/mutants.ts",
+    "verify": "tsx scripts/verify.ts",
+    "demo": "tsx scripts/demo-testnet.ts",
+    "faucet": "tsx scripts/faucet.ts",
+    "quote": "tsx scripts/oneclick-quote.ts",
+    "build:contracts": "sh scripts/build-wasm.sh",
+    "test:contracts": "sh scripts/cargo.sh test",
+    "web": "npm run dev -w web",
+    "build:web": "npm run build -w web",
+    "shots": "tsx scripts/shots.ts"
+  },
+  "workspaces": [
+    "web"
+  ],
+  "dependencies": {
+    "near-api-js": "7.4.0",
+    "near-sandbox": "0.3.5",
+    "tsx": "4.23.15"
+  }
+}

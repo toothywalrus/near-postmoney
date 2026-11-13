@@ -1,0 +1,22 @@
+[package]
+name = "postmoney"
+description = "A company cap table whose board is a Sputnik DAO: post-money SAFE rounds in USDC with escrow, NEP-171 SAFE certificates, exact conversion at a priced round, exit waterfall, secondary sales with a right of first refusal"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = { workspace = true }
+safe-math = { path = "../safe-math" }
+
+[dev-dependencies]
+near-sdk = { workspace = true, features = ["unit-testing"] }
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ['cfg(near)']

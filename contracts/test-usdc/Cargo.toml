@@ -1,0 +1,18 @@
+[package]
+name = "test-usdc"
+description = "TEST TOKEN with no value: a NEP-141 stand-in for USDC (6 decimals) that anyone can mint, for Postmoney's testnet demo and sandbox"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = { workspace = true }
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ['cfg(near)']
