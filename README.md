@@ -140,7 +140,10 @@ storage, double refund, refund to the caller, refunds before the board could clo
 anyone may exercise ROFR, no rollback at close or at settlement, Company Capitalization rounded up, the pool increase
 left out of the pre-money (the classic spreadsheet error), SAFEs left out of their own Company Capitalization
 (pre-money SAFE math), capped SAFEs never taking the round's price, and preferred converting the wrong way.
-MUTANTS_PLACEHOLDER
+Measured: **19/19 caught** in 307 s (four at a time). Two of them show why the arithmetic is the product: leaving
+the pool increase out of the pre-money (the classic spreadsheet error) prices YC's Series A at $1.2750 instead of
+$1.1144, and leaving the SAFEs out of their own Company Capitalization (pre-money SAFE math) gives Investor A 500,000
+shares instead of 588,235.
 
 ## Do X, see Y (from a fresh clone)
 
