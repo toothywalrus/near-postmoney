@@ -31,7 +31,7 @@ secondary sales with the company's right of first refusal. Built 2026-11-13 from
 
 ## Testnet
 
-Funder `near-postmoney-8624.testnet` (one faucet draw, ~0.59 NEAR left). Cap table `acme.<funder>`, token
+Funder `near-postmoney-8624.testnet` (one faucet draw, ~0.57 NEAR left). Cap table `acme.<funder>`, token
 `usdc.<funder>`, board `acme-board-8624.sputnik-v2.testnet` (council ada, ben, erin `.<funder>`). Testnet charges
 prepaid gas up front at ~0.001 NEAR per TGas; `demo-testnet.ts` lends the people what a call needs. This Sputnik
 version marks a proposal Approved even when its call fails: read the receipts, not the status.

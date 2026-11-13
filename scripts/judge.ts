@@ -30,7 +30,7 @@ function run(name: string, cmd: string, args: string[], summarize: (out: string)
     p.on("close", (code) => {
       const secs = Math.round((Date.now() - t) / 1000);
       const status = code === 3 ? "SKIP" : code === 0 ? "PASS" : "FAIL";
-      const detail = status === "SKIP" ? last(out, /^SKIP/) || "testnet unreachable" : summarize(out) || `exit ${code}`;
+      const detail = status === "SKIP" ? last(out, /^SKIP/) || "testnet unreachable" : summarize(out).replace(/ \(\d+ s\)$/, "") || `exit ${code}`;
       rows.push({ name, status, detail, secs });
       console.log(`${status === "PASS" ? "✓" : status === "SKIP" ? "–" : "✗"} ${name} (${secs} s): ${detail}`);
       if (status === "FAIL") console.log(out.split("\n").filter((l) => /✗|Error|FAILED|panicked/.test(l)).slice(0, 12).join("\n"));

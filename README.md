@@ -37,20 +37,21 @@ git clone https://github.com/toothywalrus/near-postmoney && cd near-postmoney
 npm ci && npm run judge        # Node 22; no keys, no wallet, no Rust. First run downloads the NEAR sandbox node.
 ```
 
-It ends in a pass/fail table. Measured on 2026-11-13 on an 8-core Linux laptop shared with other builds (suites run side by side):
+It ends in a pass/fail table. Measured on 2026-11-13 from a fresh clone, on an 8-core Linux laptop shared with other
+builds (the suites run side by side):
 
 ```
 Check                                                                                Result  Time   Detail
 res/*.wasm match res/SHA256SUMS                                                      PASS    0s     postmoney.wasm, test_usdc.wasm, sputnikdao2-ZGdM2TFd.wasm
-Web page builds (web/dist)                                                           PASS    4s     built: serve web/dist with any static server
-Testnet deployment re-read from chain state                                          PASS    4s     20/20 chain checks passed
-Reference: YC's worked examples + invariants on 2,000 random rounds and 2,000 exits  PASS    7s     7 ✓, 0 ✗; invariants hold on 1883 converted random cases …
-Kill test on the wasm: contract vs reference, every number (sandbox)                 PASS    36s    wasm = reference on 2500 random priced rounds: 2349 converted identically (6869 SAFEs, 893 capped ones at the round's price), 151 refused by both; 6/6 property checks passed
-The company's whole life, board = real Sputnik DAO (sandbox)                         PASS    101s   44/44 sandbox checks passed
-Mutation checks: 3 of 19 (npm run mutants runs all)                                  PASS    104s   3/3 mutants caught
-Attack suite: each attack meets its stated refusal (sandbox)                         PASS    137s   54/54 attacks refused as expected
+Reference: YC's worked examples + invariants on 2,000 random rounds and 2,000 exits  PASS    8s     7 ✓, 0 ✗; invariants hold on 1883 converted random cases (713 capped SAFEs took …
+Testnet deployment re-read from chain state                                          PASS    8s     23/23 chain checks passed
+Web page builds (web/dist)                                                           PASS    9s     built: serve web/dist with any static server
+Kill test on the wasm: contract vs reference, every number (sandbox)                 PASS    58s    wasm = reference on 2500 random priced rounds: 2349 converted identically (6869 SAFEs, 893 capped ones at the round's price), 151 refused by both; 6/6 property checks passed
+The company's whole life, board = real Sputnik DAO (sandbox)                         PASS    121s   44/44 sandbox checks passed
+Mutation checks: 3 of 19 (npm run mutants runs all)                                  PASS    126s   3/3 mutants caught
+Attack suite: each attack meets its stated refusal (sandbox)                         PASS    161s   54/54 attacks refused as expected
 
-All 8 checks passed in 137 s.
+All 8 checks passed in 161 s.
 ```
 
 [`JUDGES.md`](JUDGES.md) maps every claim to its code, its test and its command.
@@ -154,7 +155,7 @@ shares instead of 588,235.
 
 | Do | See |
 |---|---|
-| `npm ci && npm run judge` | the table above, about 2.5 minutes (plus `npm ci`) |
+| `npm ci && npm run judge` | the table above, under 3 minutes (plus `npm ci`) |
 | `npm run reference` | the reference reproduces YC's four questions; invariants on 2,000 random rounds and exits (5 s, no network) |
 | `npm run property` | the contract's wasm reproduces YC's examples and agrees with the reference on 2,500 + 2,500 random cases |
 | `npm run sandbox` | the company's whole life with a real Sputnik DAO as the board, YC's numbers on chain (44 checks, ~85 s) |
@@ -199,7 +200,8 @@ The story (every transaction is in [`deploy/testnet-run.json`](deploy/testnet-ru
 | bob refunds erin, who never registered with the token: **the transfer fails and the cap table rolls the refund back** | [tx](https://testnet.nearblocks.io/txns/2svaE7YeFcH2RbnwMhHWp2wM2jf6fCm9Zo5TAvvEB3Yx) |
 | erin registers; bob refunds her again; the $3,000 reaches her | [tx](https://testnet.nearblocks.io/txns/AYTifY7VkMahFUYbbzfunEzPB7q35K6NeEXvzEWKTRyK) |
 
-NEAR spent: DAO 4.85, cap table 3.82 (code and state), token 0.44, seven people 0.35, gas; 0.59 left on the funder.
+NEAR spent: DAO 4.85, cap table 3.86 (code and state), token 0.45, seven people and gas the rest; 0.57 left on the
+funder.
 
 The cap table's code was replaced twice while the deployer's key exists, each time with the state carried over (same
 layout): before the story ([tx](https://testnet.nearblocks.io/txns/2GMyrE4v3gVVAT4UsJ9Kv1eswLF8ru2QD6HEoA6kq4A8), MFN

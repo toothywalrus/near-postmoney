@@ -20,5 +20,5 @@ TGas (measured: a 100 TGas call needs 0.101 NEAR on hand), and refunds what isn'
 
 ## Consequences
 
-- Spent: DAO 4.85, cap table 3.82, token 0.44, people 0.35; about 0.4 NEAR left (README).
+- Spent: DAO 4.85, cap table 3.86, token 0.45, the people and gas the rest; about 0.57 NEAR left on the funder.
 - More NEAR would buy a second company (another 3.8 NEAR) or a locked-from-birth deployment.
