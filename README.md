@@ -154,7 +154,7 @@ out of their own Company Capitalization (pre-money SAFE math) gives Investor A 5
 | `npm run attacks` | 60 checks, each attack refused as stated |
 | `npm run mutants` | 21/21 broken contracts caught (about 8 minutes) |
 | `npm run verify` | the testnet deployment re-read: code = `res/*.wasm`, the DAO owns it, YC's Series A on chain, the stale proposal refused, the refunds and the rolled-back one (23 checks) |
-| `npm run build:web`, then serve `web/dist/` | the page: Acme's cap table live from testnet, the next round modelled by the contract's own preview, the waterfall slider, the SAFE certificates |
+| `npm run build:web`, then serve `web/dist/` | the page: Acme's cap table live from testnet, the next round modelled by the contract's own preview, the waterfall slider, the SAFE certificates. `web/dist/next/` is a redesigned version of the same page (`npm run dev:next -w web` to develop it) |
 | `npm run quote` | keyless 1Click dry quotes: an investor on Base pays USDC, exactly $25,000 USDC lands on NEAR; and 1Click accepts delivering it into a round with the investor named |
 | `SEED=9 FRESH=3000 npm run property` | 3,000 more random rounds from another seed |
 | `npm run scale` | the contract at its caps: 60 SAFEs from 8 rounds converted by the board in 38.5 TGas, the waterfall on them in 12 TGas, a ninth set of terms refused (~3 minutes) |

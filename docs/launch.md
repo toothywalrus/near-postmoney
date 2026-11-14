@@ -32,8 +32,20 @@ Shorter alternative (one post):
 | 44-52 s | §7, proposal 3 in red | "The board votes on a hash of the numbers. When the cap table moved after this vote, the contract refused to execute it." |
 | 52-60 s | Terminal: `npm run judge`, the table of PASS | "Twenty-five hundred random rounds against an independent implementation, sixty attack checks, twenty-one broken builds caught. One command." |
 
+## The same script on the redesigned page (`web/dist/next/`)
+
+| Time | Screen | Voice |
+|---|---|---|
+| 0-8 s | Overview: "Acme Robotics, Inc." and the "Refused on chain" card | "This is a company's cap table on NEAR. Its board is a Sputnik DAO, and once it voted on numbers that had changed. The contract refused." |
+| 8-16 s | Overview: the ownership bar and its table | "Founders, a Series A, the pool, and two SAFEs still outstanding, each at its cap." |
+| 16-30 s | Model a round: drag pre-money down and up; the After bar redraws; the SAFEs flip between "at its cap" and "at the round's price" | "Model the next round. Every number is the contract's own preview, and the hash at the bottom is what the board would vote on." |
+| 30-38 s | SAFEs: the certificates | "Each SAFE is an NFT, drawn by the contract, minted when its round closed." |
+| 38-46 s | Overview: "The Series A, checked against YC", all ticks | "YC's worked example, run on testnet by the DAO. Every line matches, to the share." |
+| 46-52 s | Board: proposal 3, marked Refused | "Proposal 3 passed its vote and the contract still refused it: the cap table had moved since the preview." |
+| 52-60 s | Terminal: `npm run judge` | "Twenty-five hundred random rounds against an independent implementation, sixty attacks, twenty-one broken builds caught. One command." |
+
 ## Before posting
 
 - Make the repo public (owner).
-- Host the page (`web/dist/`) where he wants it; it reads testnet directly, no server.
+- The page is hosted at near.toothywalrus.dev/postmoney/ (first design) and /postmoney/next/ (redesign), behind the site's sign-in until it's lifted; it reads testnet directly, no server.
 - Optionally `npm run lock -- --yes` so the cap table answers only to its DAO.

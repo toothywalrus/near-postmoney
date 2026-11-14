@@ -1,0 +1,433 @@
+{
+  "explorer": "https://testnet.nearblocks.io",
+  "company": "acme.near-postmoney-8624.testnet",
+  "board": "acme-board-8624.sputnik-v2.testnet",
+  "usdc": "usdc.near-postmoney-8624.testnet",
+  "steps": [
+    {
+      "what": "alice mints 350000 test USDC",
+      "ok": true,
+      "tx": "DkaJKjytFrrSr87pMDeWT2VbYvMhSaYSkEPpWXCxWmXV"
+    },
+    {
+      "what": "bob mints 900000 test USDC",
+      "ok": true,
+      "tx": "4twAyvrjYQranLhBoHkfMsixFBgDBmFTVFWPUS8S6Fyt"
+    },
+    {
+      "what": "dave mints 60000 test USDC",
+      "ok": true,
+      "tx": "J7SVSqYWPa1TuiKHBvKUyf4rrxvaGi9KWvRzeW3jww19"
+    },
+    {
+      "what": "carol mints 40000 test USDC",
+      "ok": true,
+      "tx": "FJH95Se2Vs5fQb6XgNDoL9fMxcNcVeUGm72uLrLM7e2u"
+    },
+    {
+      "what": "alice adds 0.01 NEAR storage balance on the cap table",
+      "ok": true,
+      "tx": "6uenSi4ank2gwjWHQrGDyaTQxdbcFNJQhhNjWrd6uyoM"
+    },
+    {
+      "what": "bob adds 0.01 NEAR storage balance on the cap table",
+      "ok": true,
+      "tx": "GDKMW9WMoSq2wxL9vRfz4svrJ6CACFr6vPdaUQnTt2uY"
+    },
+    {
+      "what": "ada adds 0.01 NEAR storage balance on the cap table",
+      "ok": true,
+      "tx": "By8Nyk2QfdoeYtuJ9FcLVyQbDt15Wzq9h8nuRMw4aXyL"
+    },
+    {
+      "what": "ben adds 0.01 NEAR storage balance on the cap table",
+      "ok": true,
+      "tx": "DYueX9a1U1aTap2J6Cwzuoig2mdbtg5XHR1jsPfXMt2j"
+    },
+    {
+      "what": "ada registers with the test USDC",
+      "ok": true,
+      "tx": "C3SzUd3Ej9ibtdp6fFWHGwkM9vyVmaoVyx5QCrYiNN6j"
+    },
+    {
+      "what": "ben registers with the test USDC",
+      "ok": true,
+      "tx": "H7xVS9ANYDV6KgDVSxcctG9K8YoeuPYdYRUpuNyaPxF4"
+    },
+    {
+      "what": "proposal: Open two post-money SAFE rounds: $100k-$200k at a $4m cap; $400k-$800k at an $8m cap with a pro rata side letter",
+      "ok": true,
+      "tx": "CSXQYp4teLo9worPfJWLdKrTQUqDLBE2J8C9J8ksTfsf",
+      "proposal": 0
+    },
+    {
+      "what": "  ada votes for proposal 0",
+      "ok": true,
+      "tx": "6uyZmKgewLVu7sPT5XRtUQfZqYT75DnZPmr9Gf9K2rzJ"
+    },
+    {
+      "what": "  ben votes: proposal 0 Approved",
+      "ok": true,
+      "tx": "Ab2Dz1s18xuqFKiT4i4HUeudq283HvPcy7cb9o9pRyv2",
+      "proposal": 0,
+      "status": "Approved"
+    },
+    {
+      "what": "alice pays $250,000 into the $200k round",
+      "ok": true,
+      "tx": "sBrHvRwMjJV9C57SjhwQDF5MgK8LACnsa1fGbamUu4M"
+    },
+    {
+      "what": "bob pays $800,000 into the $8m round",
+      "ok": true,
+      "tx": "5XxzddupchbbPAFAkWgTqRLQSn7FhjF8rYPmwviZwEke"
+    },
+    {
+      "what": "proposal: Close both SAFE rounds: the USDC goes to the treasury (this DAO), each investor gets a SAFE certificate",
+      "ok": true,
+      "tx": "FMGwo8tH5zLNHTGzsbKfc3QQKp4afta5TrBW72dHRkWE",
+      "proposal": 1
+    },
+    {
+      "what": "  ada votes for proposal 1",
+      "ok": true,
+      "tx": "3ypwQxsVCgsb9tcTBjo3mnZ32v51hk31UxXVnxa4kNzo"
+    },
+    {
+      "what": "  erin votes: proposal 1 Approved",
+      "ok": true,
+      "tx": "6YEpFS9KgofQ1bVgAYBTkY4yb9EMmsUpTDKdBpPge1Sq",
+      "proposal": 1,
+      "status": "Approved"
+    },
+    {
+      "what": "proposal: Grant 1 option from the pool (the cap table moves after the Series A preview)",
+      "ok": true,
+      "tx": "FGSXhkZ5CGMC69xqvVEjxLxdjexTDH8tb1uP1NwBBFEM",
+      "proposal": 2
+    },
+    {
+      "what": "  ada votes for proposal 2",
+      "ok": true,
+      "tx": "6Mdi6r6sgH7ehrCJPJj42vDVrwQwAbKQNghbhb34vnoJ"
+    },
+    {
+      "what": "  ben votes: proposal 2 Approved",
+      "ok": true,
+      "tx": "nj8YsMchJdhLmdSzA7NaGappdbNXqkb6q4CmB7EZuE9",
+      "proposal": 2,
+      "status": "Approved"
+    },
+    {
+      "what": "proposal: Execute the Series A as previewed (stale hash ca9aaaa6c44e\u2026)",
+      "ok": true,
+      "tx": "6m8ZyhtH59NwHjPb1pYJ5vCZD1cARsrZLPeeArvW664q",
+      "proposal": 3
+    },
+    {
+      "what": "  ada votes for proposal 3",
+      "ok": true,
+      "tx": "CM8LCxjXHbFYvatoFuT777o3c3AqZeDvVz61j8XKWB9b"
+    },
+    {
+      "what": "  erin votes: proposal 3 Approved; the cap table refuses to execute it: \"the cap table or the terms changed since the preview: preview again and vote on the new hash\"",
+      "ok": true,
+      "reason": "the cap table or the terms changed since the preview: preview again and vote on the new hash",
+      "proposal": 3,
+      "status": "Approved",
+      "refusal": "the cap table or the terms changed since the preview: preview again and vote on the new hash",
+      "tx": "BBqZzkREYxvDbYmG4tDEShp81SpVLnhUhLTuYQwgL8dS"
+    },
+    {
+      "what": "proposal: Execute the Series A: $5m at $15m pre-money, price $1.1144, hash 416d871c7aa8958d8f50b196d3afa4773ba64f133526f0624d7db560ddc4ab1a",
+      "ok": true,
+      "tx": "8LQjLzMi9KDpzsvUJ5vrtyPHgE3TR9YsUCaw2H8Zxvue",
+      "proposal": 4
+    },
+    {
+      "what": "  ada votes for proposal 4",
+      "ok": true,
+      "tx": "BJioZiMokr4Tj7LazMaQ1ogXfedi1RCzyjvobZBA2A8o"
+    },
+    {
+      "what": "  ben votes: proposal 4 Approved",
+      "ok": true,
+      "tx": "6LeEyWwje2xMdd3apYSM9rpbCZao912VrG4twYWBHjbp",
+      "proposal": 4,
+      "status": "Approved"
+    },
+    {
+      "what": "ada offers 100,000 common shares to dave for $50,000",
+      "ok": true,
+      "tx": "9UQ9vbx7dS3McMcciSUmYAUgJrzNzstPXrszz26fqCw5"
+    },
+    {
+      "what": "dave pays $50,000 into escrow: the company's 2-minute right of first refusal starts",
+      "ok": true,
+      "tx": "BhU77Ut6onmdptj8anBfabGTwjY1xKoqqHBKfQhDaTaJ"
+    },
+    {
+      "what": "ben offers 50,000 common shares to carol for $30,000",
+      "ok": true,
+      "tx": "4rQCtB5GukjLcWircq93jkKH7QDBbEZz5VKGvr8tU4er"
+    },
+    {
+      "what": "carol pays $30,000 into escrow",
+      "ok": true,
+      "tx": "GWhXeqKgeApvnswB41vmwffHyh3Dtubh468ZRjYYnwRT"
+    },
+    {
+      "what": "proposal: Exercise the company's right of first refusal on ben's offer: the treasury buys the 50,000 shares at $30,000",
+      "ok": true,
+      "tx": "KtrrSLq6FpxHUxP4ja6gu56BUwvJfgpd2LWACShPLYQ",
+      "proposal": 5
+    },
+    {
+      "what": "  ada votes for proposal 5",
+      "ok": true,
+      "tx": "8RNY6r2HJctQ15fTw9HVSxfqvwzGSiV6UizCv3DzHzvK"
+    },
+    {
+      "what": "  erin votes: proposal 5 Approved",
+      "ok": true,
+      "tx": "8RLnjsp9CURoWctDE1ezWiDMduUcW7J1EbGMrfNhcAYA",
+      "proposal": 5,
+      "status": "Approved"
+    },
+    {
+      "what": "dave tries to settle inside the company's window (expected: refused)",
+      "ok": true,
+      "refusal": "the company's right of first refusal is still open"
+    },
+    {
+      "what": "after the window, dave settles: shares to dave, $50,000 to ada",
+      "ok": true,
+      "tx": "8crtyM9yixNyRRAAuTKdyxavwNsUDeiCyqvuqnxYDLTh"
+    },
+    {
+      "what": "proposal: Open an MFN SAFE round: no cap, no discount, most-favored-nation; $25k-$100k",
+      "ok": true,
+      "tx": "7yB7FepThYaXjjU3TeQ4fXysrMdoHSncRdQXxGhrMNY2",
+      "proposal": 6
+    },
+    {
+      "what": "  ada votes for proposal 6",
+      "ok": true,
+      "tx": "H7uwYbyDzqjxm2yfjB7WD6uAxZydcNBwqgBXN4wWVHQL"
+    },
+    {
+      "what": "  ben votes: proposal 6 Approved",
+      "ok": true,
+      "tx": "BcGkroFu6XEM5PiFCS9CCaKX8QHdvPfbQRsY9UnDEiB2",
+      "proposal": 6,
+      "status": "Approved"
+    },
+    {
+      "what": "bob pays $50,000 for an MFN SAFE",
+      "ok": true,
+      "tx": "Ed3bisAhZkmA7ifpFcApyj5QSj58Z79WLUuDqi24XCtL"
+    },
+    {
+      "what": "proposal: Close the MFN round; open a bridge SAFE round: $30m post-money cap, 20% discount, $50k-$250k",
+      "ok": true,
+      "tx": "996r2htZXpBWmhScmrdShhk4kurWJucMenno25x3DNC9",
+      "proposal": 7
+    },
+    {
+      "what": "  ada votes for proposal 7",
+      "ok": true,
+      "tx": "6i8QCkcF5jrp5ChRAVWJx5N7oBy6y2GKea3NQAxTXmRQ"
+    },
+    {
+      "what": "  erin votes: proposal 7 Approved",
+      "ok": true,
+      "tx": "GLf5vT1iXu92r9bHKuY31Uu1zonWQ3ZHUivkXCfGufey",
+      "proposal": 7,
+      "status": "Approved"
+    },
+    {
+      "what": "alice pays $100,000 into the bridge round",
+      "ok": true,
+      "tx": "3JUicKBynjLCu4GseR3di4fmTqQwKXfJL99HMnHkmeA6"
+    },
+    {
+      "what": "proposal: Close the bridge SAFE round",
+      "ok": true,
+      "tx": "66AUdbauuETftY6Au2Jkzs3i1MiU43EQKfzZLfMCs7ca",
+      "proposal": 8
+    },
+    {
+      "what": "  ada votes for proposal 8",
+      "ok": true,
+      "tx": "8MCz6N8bULCffo72dLkVQcynXQhLzZcCkp6ZLp4mtxww"
+    },
+    {
+      "what": "  ben votes: proposal 8 Approved",
+      "ok": true,
+      "tx": "5gG11uuDmh4RWGmmsX9cg74L8gFJcXVNsNqn1iTyu5mD",
+      "proposal": 8,
+      "status": "Approved"
+    },
+    {
+      "what": "bob's MFN SAFE #3 adopts the bridge round's terms ($30m cap, 20% discount)",
+      "ok": true,
+      "tx": "FzsMas1Yvfzj6cc1gatky1Ln7orvbEhj4jumwcakhanz"
+    },
+    {
+      "what": "erin adds 0.01 NEAR storage balance on the cap table",
+      "ok": true,
+      "tx": "33uw7iyM9c1DYx9DcTvwsUJ8bBDcXHtDgHJTfAr5FAT8"
+    },
+    {
+      "what": "proposal: Open a second bridge round: $40m post-money cap, $500k minimum, closing in 150 seconds",
+      "ok": true,
+      "tx": "6iwVZEPt3JCmVCmRYnE9jvWkf98VeX5eht15m279NBXE",
+      "proposal": 9
+    },
+    {
+      "what": "  ada votes for proposal 9",
+      "ok": true,
+      "tx": "BXyC2R68ZqPue1g4A82bvVEk6nXoxCUWhcqM972TgQkh"
+    },
+    {
+      "what": "  ben votes: proposal 9 Approved",
+      "ok": true,
+      "tx": "6VhsariDfbbbAp1eyUhpuNHjrFqJScupLqxajK6LUftu",
+      "proposal": 9,
+      "status": "Approved"
+    },
+    {
+      "what": "dave pays $5,000 into Bridge II before adding a storage balance: refused, the token returns the $5,000",
+      "ok": true,
+      "tx": "AF6n7HmMdfqP9no3EPShJ4Ne9XJZGt1ayVezZF6GoRNj",
+      "reason": "storage: dave.near-postmoney-8624.testnet needs 4530000000000000000000 yoctoNEAR more storage balance (storage_deposit)",
+      "expected_refusal": true
+    },
+    {
+      "what": "dave adds 0.01 NEAR storage balance on the cap table",
+      "ok": true,
+      "tx": "BN7QNFfgKAv1tmsfAiyAwmmQMJ4kV7cn3qW6PYryen3a"
+    },
+    {
+      "what": "dave pays $5,000 into Bridge II",
+      "ok": true,
+      "tx": "Ak1W28bpk3UoHu2GdfzsF2ovdPT7UGrZNuwLi4o3RQAY"
+    },
+    {
+      "what": "carol pays $3,000 into Bridge II for erin (the investment is erin's)",
+      "ok": true,
+      "tx": "7keqbgqp23S3ZcdFcm3jzvnkJLKmzUWMYDvo6GiVZrdL"
+    },
+    {
+      "what": "the round missed its minimum: bob (anyone) refunds dave's $5000, which goes to dave",
+      "ok": true,
+      "tx": "7MnqCKhLviU8WBVi81YXdDY1rxyPEG45u1VvooWLN4XY"
+    },
+    {
+      "what": "bob refunds erin, who never registered with the token: the transfer fails and the contract rolls the refund back (still erin's, still in escrow)",
+      "ok": true,
+      "tx": "2svaE7YeFcH2RbnwMhHWp2wM2jf6fCm9Zo5TAvvEB3Yx",
+      "expected_refusal": true,
+      "refusal": "receiver is not registered"
+    },
+    {
+      "what": "erin registers with the test USDC",
+      "ok": true,
+      "tx": "D24EeoJ4VamaZojJRRCbUCKL74eDtBw8rc3dPAmRWnX4"
+    },
+    {
+      "what": "bob refunds erin again: the $3000 goes to erin",
+      "ok": true,
+      "tx": "AYTifY7VkMahFUYbbzfunEzPB7q35K6NeEXvzEWKTRyK"
+    }
+  ],
+  "preview": {
+    "name": "Series A",
+    "version": "3",
+    "state_hash": "416d871c7aa8958d8f50b196d3afa4773ba64f133526f0624d7db560ddc4ab1a",
+    "price": "1114400",
+    "conversion": {
+      "price": "1114400",
+      "exact_price": "51000000000/45763",
+      "company_capitalization": "11764705",
+      "safes": [
+        {
+          "shares": "588235",
+          "basis": "cap",
+          "other_basis_shares": "179468"
+        },
+        {
+          "shares": "1176470",
+          "basis": "cap",
+          "other_basis_shares": "717875"
+        }
+      ],
+      "safe_shares": "1764705",
+      "pool_increase": "1695000",
+      "pool_after": "1794999",
+      "new_shares": [
+        "3589375",
+        "448671",
+        "448673"
+      ],
+      "new_shares_total": "4486719",
+      "pre_money_shares": "13459705",
+      "post_money_shares": "17946424"
+    },
+    "safes": [
+      {
+        "token_id": "1",
+        "owner": "alice.near-postmoney-8624.testnet",
+        "round": 0,
+        "purchase": "200000000000",
+        "discount_bps": 0,
+        "shares": "588235",
+        "basis": "cap",
+        "other_basis_shares": "179468",
+        "pro_rata_shares": null
+      },
+      {
+        "token_id": "2",
+        "owner": "bob.near-postmoney-8624.testnet",
+        "round": 1,
+        "purchase": "800000000000",
+        "discount_bps": 0,
+        "shares": "1176470",
+        "basis": "cap",
+        "other_basis_shares": "717875",
+        "pro_rata_shares": "448671"
+      }
+    ],
+    "investors": [
+      {
+        "account": "carol.near-postmoney-8624.testnet",
+        "cash": "4000000000000",
+        "shares": "3589375"
+      },
+      {
+        "account": "bob.near-postmoney-8624.testnet",
+        "cash": "499998970000",
+        "shares": "448671"
+      },
+      {
+        "account": "dave.near-postmoney-8624.testnet",
+        "cash": "500001030000",
+        "shares": "448673"
+      }
+    ]
+  },
+  "staleDone": {
+    "proposal": 3,
+    "status": "Approved",
+    "refusal": "the cap table or the terms changed since the preview: preview again and vote on the new hash",
+    "tx": "BBqZzkREYxvDbYmG4tDEShp81SpVLnhUhLTuYQwgL8dS"
+  },
+  "final": {
+    "company_capitalization": "18036607",
+    "positions": 9,
+    "certificates": [
+      "3",
+      "4"
+    ]
+  }
+}
