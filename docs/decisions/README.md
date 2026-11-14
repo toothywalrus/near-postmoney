@@ -17,3 +17,4 @@ a later decision that supersedes one gets a new record, and the old entry is str
 | [0007](0007-refunds-if-abandoned-and-paying-for-someone.md) | Refunds open when a board leaves a funded round unclosed as long again as it ran; anyone may pay for an investor (`"for"`) |
 | [0008](0008-linear-arithmetic-and-a-terms-cap.md) | The exact arithmetic runs over common denominators in linear scans; at most 8 different SAFE terms outstanding (60 SAFEs convert in 38.5 TGas) |
 | [0009](0009-a-least-first-ticket.md) | A new investor's first ticket is at least the round's minimum over its 40 places, so one-unit investments can't take them all |
+| [0010](0010-a-second-page-beside-the-first.md) | A redesigned React page in `web/next/` is built beside the first into `dist/next/` and reuses its chain, format and reference modules; the first page stays |
