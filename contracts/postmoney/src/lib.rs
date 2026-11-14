@@ -36,7 +36,7 @@ const MIN_STORAGE_DEPOSIT: NearToken = NearToken::from_millinear(5);
 pub const MAX_INVESTORS_PER_ROUND: usize = 40;
 pub const MAX_OUTSTANDING_SAFES: usize = 60;
 /// Different (cap, discount) pairs among outstanding SAFEs and open rounds. The exact arithmetic's numbers grow with
-/// the number of different caps, so this bounds the conversion's gas (`npm run scale`; decision 0005).
+/// the number of different caps, so this bounds the conversion's gas (`npm run scale`; decision 0008).
 pub const MAX_DISTINCT_TERMS: usize = 8;
 
 #[near(serializers = [borsh])]
@@ -57,7 +57,7 @@ pub struct SafeTerms {
     pub cap: Option<U128>,
     /// Discount in basis points (2000 = 20% off the round's price).
     pub discount_bps: u32,
-    /// Most-favored-nation: the holder may adopt the terms of any SAFE round opened later.
+    /// Most-favored-nation: the holder may adopt the terms of a SAFE round opened and closed later (one that issued its SAFEs).
     pub mfn: bool,
     /// A pro rata side letter: the right to buy its share of the next priced round.
     pub pro_rata: bool,
@@ -498,6 +498,12 @@ impl Postmoney {
         require!(room > 0, "the round is full");
         let take = amount.min(room);
         let existing = r.investments.iter().position(|i| i.investor == investor && !i.refunded);
+        if existing.is_none() {
+            // A new investor takes one of the round's places, so a first ticket is at least the round's minimum over
+            // its places (or all the room left): the places can't run out before the minimum is met (decision 0009).
+            let least = r.terms.min_raise.0.div_ceil(MAX_INVESTORS_PER_ROUND as u128).min(room);
+            require!(take >= least, "under the round's least first ticket (its minimum raise over its 40 investor places)");
+        }
         match existing {
             Some(i) => r.investments[i].amount = U128(add(r.investments[i].amount.0, take)),
             None => {

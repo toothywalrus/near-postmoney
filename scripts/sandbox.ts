@@ -115,12 +115,12 @@ c.check(t4.positions.some((x: any) => x.holder === B && x.shares === "50000"), "
 c.section("5. A round that misses its minimum");
 const soon = String((await w.secs()) + 6);
 must(await w.boardCall("open_round", { terms: { name: "Bridge SAFE", safe: { cap: usd(30_000_000).toString(), discount_bps: 2000, mfn: false, pro_rata: false }, min_raise: usd(2_000_000).toString(), max_raise: usd(3_000_000).toString(), deadline: soon } }), "DAO proposal: a bridge round, $2m minimum, a few seconds to fill");
-must(await w.pay(mallory, usd(10_000), { invest: 2 }), "mallory puts in $10,000");
+must(await w.pay(mallory, usd(50_000), { invest: 2 }), "mallory puts in $50,000 (the least first ticket: $2m / 40)");
 await w.sleep(8_000);
 const malB = await w.usdcOf(mallory.accountId);
 const aliceB = await w.usdcOf(alice.accountId);
 must(await call(alice, A, "refund", { round: 2, investor: mallory.accountId }), "after the deadline, alice (anyone) triggers mallory's refund");
-c.check((await w.usdcOf(mallory.accountId)) - malB === usd(10_000) && (await w.usdcOf(alice.accountId)) === aliceB, "the $10,000 went back to mallory, not to the caller");
+c.check((await w.usdcOf(mallory.accountId)) - malB === usd(50_000) && (await w.usdcOf(alice.accountId)) === aliceB, "the $50,000 went back to mallory, not to the caller");
 const rr = (await w.view("rounds"))[2];
 c.check(rr.status === "Refunding" && rr.raised === "0", "the round is refunding with nothing left in escrow", rr.status);
 

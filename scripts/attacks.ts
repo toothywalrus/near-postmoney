@@ -68,7 +68,7 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
 
     say("Closing");
     ok(await w.boardCall("open_round", round("Big minimum", { deadline: far, min: usd(1_000_000), max: usd(2_000_000) })), "open round 2");
-    ok(await w.pay(carol, usd(5_000), { invest: 2 }), "carol invests in round 2");
+    ok(await w.pay(carol, usd(25_000), { invest: 2 }), "carol invests $25,000 in round 2 (its least first ticket: $1m / 40)");
     c.refused(await w.boardCall("close_round", { round: 2 }), "has not met its minimum", "close a round below its minimum");
     ok(await w.boardCall("close_round", { round: 0 }), "close round 0");
     c.refused(await w.boardCall("close_round", { round: 0 }), "the round is not open", "close a round twice");
@@ -82,19 +82,19 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     const mb = await bal(mallory.accountId);
     const cb = await bal(carol.accountId);
     ok(await call(mallory, A, "refund", { round: 2, investor: carol.accountId }), "mallory triggers carol's refund");
-    c.check((await bal(carol.accountId)) - cb === usd(5_000) && (await bal(mallory.accountId)) === mb, "claim another's refund: the money goes to carol, who paid; mallory gets nothing");
+    c.check((await bal(carol.accountId)) - cb === usd(25_000) && (await bal(mallory.accountId)) === mb, "claim another's refund: the money goes to carol, who paid; mallory gets nothing");
     c.refused(await call(carol, A, "refund", { round: 2, investor: carol.accountId }), "nothing to refund", "double refund");
     c.refused(await call(mallory, A, "refund", { round: 2, investor: mallory.accountId }), "nothing to refund", "refund to someone who never invested");
     const short = await deadline(4);
     ok(await w.boardCall("open_round", round("Short", { deadline: short, min: usd(50_000) })), "open round 3");
-    ok(await w.pay(dave, usd(1_000), { invest: 3 }), "dave invests");
+    ok(await w.pay(dave, usd(2_000), { invest: 3 }), "dave invests $2,000 (the least first ticket is $1,250)");
     await w.sleep(6_000);
     const late = await w.pay(dave, usd(1_000), { invest: 3 });
     c.check((late.reason ?? "").includes("deadline has passed"), "invest after the deadline: refused (\"the round's deadline has passed\")");
     c.refused(await w.boardCall("close_round", { round: 3 }), "has not met its minimum", "close an expired round below its minimum");
     const db = await bal(dave.accountId);
     ok(await call(mallory, A, "refund", { round: 3, investor: dave.accountId }), "anyone refunds an expired round");
-    c.check((await bal(dave.accountId)) - db === usd(1_000), "a round that missed its minimum by the deadline: anyone triggers the refund, dave is paid back");
+    c.check((await bal(dave.accountId)) - db === usd(2_000), "a round that missed its minimum by the deadline: anyone triggers the refund, dave is paid back");
 
     ok(await w.boardCall("open_round", round("Forgotten", { deadline: await deadline(10), min: usd(1_000), max: usd(10_000) })), "open round 4");
     ok(await w.pay(dave, usd(2_000), { invest: 4 }), "dave invests; the minimum is met");
@@ -173,6 +173,24 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     c.check((await bal(ada.accountId)) - ab === usd(500_000), "after the window, the trade settles: ada is paid");
     c.refused(await call(mallory, A, "settle_offer", { offer: o.value }), "already settled", "settle twice");
 
+    say("Investor places");
+    // A round has 40 investor places (MAX_INVESTORS_PER_ROUND). One-unit investments, each for a made-up account with
+    // a storage balance, must not be able to take them all and shut honest investors out (decision 0009).
+    const placesOpen = await w.boardCall("open_round", round("Places", { deadline: far, min: usd(40_000), max: usd(400_000) }));
+    ok(placesOpen, "open a round with a $40,000 minimum: the least first ticket is $1,000");
+    const pr = placesOpen.value as number;
+    const seats = Array.from({ length: 40 }, (_, i) => `place${i}.${mallory.accountId}`);
+    await mallory.signAndSendTransaction({ receiverId: A, actions: seats.map((s) => actions.functionCall("storage_deposit", { account_id: s }, 5n * TGAS, milli(6))), waitUntil: "FINAL", throwOnFailure: false } as any);
+    for (let i = 0; i < seats.length; i += 8) {
+      await mallory.signAndSendTransaction({ receiverId: U, actions: seats.slice(i, i + 8).map((s) => actions.functionCall("ft_transfer_call", { receiver_id: A, amount: "1", msg: JSON.stringify({ invest: pr, for: s }) }, 35n * TGAS, 1n)), waitUntil: "FINAL", throwOnFailure: false } as any);
+    }
+    const taken = (await w.view<any[]>("rounds"))[pr].investments.length;
+    const honest = await w.pay(dave, usd(5_000), { invest: pr });
+    c.check(taken === 0 && honest.ok, "40 one-unit investments for 40 made-up accounts: each refused (under the round's least first ticket), so an honest $5,000 still gets a place", `${taken} places taken by one-unit investments; honest: ${honest.ok ? "accepted" : honest.reason}`);
+    const under1k = await w.pay(carol, usd(1_000) - 1n, { invest: pr });
+    const at = await w.pay(carol, usd(1_000), { invest: pr });
+    c.check((under1k.reason ?? "").includes("least first ticket") && at.ok, "a first ticket one unit under the round's minimum / 40: refused, refunded; at it: accepted", under1k.reason);
+
     say("Rollback when a payout fails");
     // A second company whose treasury, and one founder, never registered with the token: their transfers fail.
     const ghost = await w.sub("ghost");
@@ -201,6 +219,32 @@ export async function runAttacks(postmoney?: Buffer, quiet = false): Promise<{ c
     const t2 = await chain.view<any>(A2, "cap_table");
     const off = (await chain.view<any[]>(A2, "offers"))[0];
     c.check(off.status === "Funded" && t2.positions.length === 1 && t2.positions[0].shares === "1000000" && t2.positions[0].locked === "1000", "the payout to the seller fails: the shares go back to the seller (still locked), the offer is paid and can settle again", `${off.status}, ${JSON.stringify(t2.positions.map((x: any) => [x.holder.split(".")[0], x.shares, x.locked]))}`);
+    // A third company whose founder never registered with the token: the company matches her offer (right of first
+    // refusal), the payment to her fails, and it stays claimable with withdraw_owed instead of being lost.
+    const ghost3 = await w.sub("ghost3");
+    const acme3 = await w.sub("acme3");
+    await acme3.signAndSendTransaction({
+      receiverId: acme3.accountId,
+      actions: [actions.deployContract(postmoney ?? postmoneyWasm()), actions.functionCall("new", { owner_id: B, company: "Acme 3", usdc: U, treasury: B, founders: [{ account: ghost3.accountId, shares: "1000000" }], options: "0", pool: "0", rofr_secs: "60" }, 100n * TGAS, 0n)],
+      waitUntil: "FINAL",
+    });
+    const A3 = acme3.accountId;
+    ok(await call(root, U, "storage_deposit", { account_id: A3 }, milli(2)), "register acme3");
+    ok(await call(ghost3, A3, "storage_deposit", {}, milli(50)), "ghost3 storage");
+    const o3 = await call(ghost3, A3, "offer_shares", { class: 0, shares: "1000", price: usd(1_000).toString(), buyer: dave.accountId });
+    ok(o3, "ghost3 offers shares to dave");
+    ok(await call(dave, U, "ft_transfer_call", { receiver_id: A3, amount: usd(1_000).toString(), msg: JSON.stringify({ buy: o3.value }) }, 1n, 150n), "dave pays");
+    const daveB = await bal(dave.accountId);
+    // The company matches; its payment to ghost3 fails (she isn't registered with the token), so this call reports a
+    // failed receipt by design: the check below reads what happened.
+    await call(board, U, "ft_transfer_call", { receiver_id: A3, amount: usd(1_000).toString(), msg: JSON.stringify({ rofr: o3.value }) }, 1n, 150n);
+    const t3 = await chain.view<any>(A3, "cap_table");
+    c.check(JSON.stringify(t3.owed) === JSON.stringify([[ghost3.accountId, usd(1_000).toString()]]) && BigInt(await chain.view(U, "ft_balance_of", { account_id: A3 })) === usd(1_000) && (await bal(dave.accountId)) - daveB === usd(1_000),
+      "the company's ROFR payment to a seller fails: the $1,000 stays in the cap table, owed to her (and the buyer's escrow came back)", JSON.stringify(t3.owed));
+    ok(await call(root, U, "storage_deposit", { account_id: ghost3.accountId }, milli(2)), "ghost3 registers with the token");
+    ok(await call(mallory, A3, "withdraw_owed", { account: ghost3.accountId }, 0n, 100n), "anyone pays out what is owed");
+    c.check((await bal(ghost3.accountId)) === usd(1_000) && (await chain.view<any>(A3, "cap_table")).owed.length === 0, "withdraw_owed pays the seller her $1,000; nothing is owed any more");
+    c.refused(await call(mallory, A3, "withdraw_owed", { account: ghost3.accountId }, 0n, 100n), "nothing owed", "withdraw what is owed twice");
   } catch (e) {
     if (!(e instanceof StopOnFail)) c.check(false, "the suite ran to the end", String((e as Error)?.stack ?? e).slice(0, 300));
   }

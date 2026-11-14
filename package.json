@@ -35,5 +35,8 @@
     "near-api-js": "7.4.0",
     "near-sandbox": "0.3.5",
     "tsx": "4.23.15"
+  },
+  "overrides": {
+    "tar": "7.5.22"
   }
 }
